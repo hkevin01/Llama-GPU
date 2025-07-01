@@ -1,3 +1,7 @@
 torch
 transformers
 accelerate
+pytest
+pytest-cov
+requests
+psutil

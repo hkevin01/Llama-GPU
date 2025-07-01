@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+.env
+
+# Logs
+logs/
+*.log
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Models and data
+models/
+*.bin
+*.pt
+*.ckpt
+*.h5
+*.onnx
+
+# System
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/
+
+# AWS
+*.pem
+
+# Copilot
+.copilot/

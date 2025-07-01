@@ -1,0 +1,39 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.1, pluggy-1.6.0 -- /home/kevin/Projects/Llama-GPU/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/kevin/Projects/Llama-GPU
+collecting ... collected 1 item
+
+tests/test_aws_detection.py::test_llama_gpu_backend_info FAILED
+
+=================================== FAILURES ===================================
+_________________________ test_llama_gpu_backend_info __________________________
+
+    def test_llama_gpu_backend_info():
+        """Test LlamaGPU backend information retrieval."""
+        from llama_gpu import LlamaGPU
+    
+        with patch('backend.cpu_backend.CPUBackend.load_model'), \
+             patch('utils.aws_detection.is_aws_gpu_instance', return_value=True), \
+             patch('utils.aws_detection.get_aws_gpu_info', return_value={'gpu_type': 'Tesla V100'}), \
+             patch('utils.aws_detection.get_optimal_aws_backend', return_value='cpu'), \
+             patch('backend.cuda_backend.CUDABackend.is_available', return_value=False), \
+             patch('backend.rocm_backend.ROCMBackend.is_available', return_value=False), \
+             patch('builtins.print'):  # Suppress print output
+    
+            llama = LlamaGPU("test-model", prefer_gpu=False, auto_detect_aws=True)
+            info = llama.get_backend_info()
+    
+            print(f"DEBUG: info = {info}")  # Debug output
+    
+            assert info['backend_type'] == 'CPUBackend'
+            assert info['model_path'] == 'test-model'
+            assert info['prefer_gpu'] is False
+            assert info['auto_detect_aws'] is True
+>           assert info['aws_instance'] is True
+E           assert False is True
+
+tests/test_aws_detection.py:133: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_aws_detection.py::test_llama_gpu_backend_info - assert Fals...
+============================== 1 failed in 7.43s ===============================
