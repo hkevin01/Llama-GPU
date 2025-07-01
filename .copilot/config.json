@@ -1,0 +1,4 @@
+{
+  "project": "Llama-GPU",
+  "description": "GPU acceleration for LLaMA models on local and AWS environments."
+}
