@@ -215,4 +215,66 @@ Enable GPU-accelerated inference and training for LLaMA models on local machines
 - Community files (`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `CHANGELOG.md`) in place
 - Next: Enable GitHub Discussions, update issue templates, announce releases, and onboard contributors
 
-*This plan will be updated as the project progresses. For the latest status, see the GitHub project board and issues.*
+---
+
+## Next Phase: High-Impact and Roadmap Additions
+
+### High-Impact Additions (Priority 1)
+- [ ] **Production-Ready API Server**
+  - [ ] REST API with OpenAI-compatible endpoints (`/v1/chat/completions`, `/v1/completions`)
+  - [ ] WebSocket support for real-time streaming
+  - [ ] Request queuing and dynamic batching
+  - [ ] Immediate production usability
+- [ ] **Model Management System**
+  - [ ] Automatic model downloading from HuggingFace Hub
+  - [ ] Support for quantized models (GGUF, GPTQ, AWQ formats)
+  - [ ] Model caching and version management
+  - [ ] Simplifies model deployment
+- [ ] **Container & Orchestration Support**
+  - [ ] Docker images with GPU support
+  - [ ] Kubernetes deployment manifests
+  - [ ] Helm charts for easy deployment
+  - [ ] Enables scalable cloud deployments
+
+### Medium-Impact Additions (Priority 2)
+- [ ] **Advanced Inference Features**
+  - [ ] Multiple sampling strategies (nucleus, top-k, temperature, typical sampling)
+  - [ ] Guided generation with JSON schema constraints
+  - [ ] Function calling/tool use capabilities
+- [ ] **Multi-GPU Support**
+  - [ ] Tensor parallelism for large models
+  - [ ] Pipeline parallelism across multiple GPUs
+  - [ ] Load balancing for multiple inference requests
+- [ ] **Performance Optimizations**
+  - [ ] Mixed precision inference (FP16/BF16)
+  - [ ] KV-cache optimization and sharing
+  - [ ] Speculative decoding for faster generation
+
+### Lower-Impact But Valuable (Priority 3)
+7. **Web UI Dashboard**
+   - Interactive testing interface
+   - Real-time performance monitoring
+   - Model comparison tools
+8. **Monitoring & Observability**
+   - Prometheus metrics export
+   - Grafana dashboard templates
+   - Request tracing and analytics
+9. **Extended Model Format Support**
+   - ONNX runtime integration
+   - TensorRT optimization
+   - Support for other model architectures beyond LLaMA
+
+### Quick Wins (Easy to implement, good impact)
+10. **Enhanced CLI Tools**
+    - Interactive chat mode
+    - Batch processing from files
+    - Configuration file support
+    - Model benchmarking utilities
+11. **Integration Examples**
+    - LangChain integration
+    - FastAPI example applications
+    - Jupyter notebook tutorials
+
+---
+
+*These roadmap items represent the next major phase for Llama-GPU and will be tracked in the project board and issues. Community feedback and contributions are welcome!*
