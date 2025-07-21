@@ -83,3 +83,15 @@ class RoleManager:
     def get_all_permissions(self) -> Dict[str, list]:
         """Return all defined roles and their permissions."""
         return self.permissions.copy()
+
+    def export_roles(self) -> Dict[str, Dict[str, str]]:
+        """Export all user roles and passwords for backup or migration."""
+        return {
+            'roles': self.roles.copy(),
+            'passwords': self.passwords.copy()
+        }
+
+    def import_roles(self, data: Dict[str, Dict[str, str]]) -> None:
+        """Import user roles and passwords from backup or migration."""
+        self.roles.update(data.get('roles', {}))
+        self.passwords.update(data.get('passwords', {}))
