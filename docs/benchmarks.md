@@ -21,6 +21,17 @@ This document will summarize and visualize performance benchmarks for LLaMA infe
 
 *(Add charts/plots here as results are collected)*
 
+## Async API Benchmarking
+
+- Run `scripts/benchmark_async.py` to benchmark async inference endpoints.
+- Results are logged to `logs/test_output.log` for review and analysis.
+- Includes timing for single and batch inference endpoints.
+
+Example:
+```bash
+python scripts/benchmark_async.py
+```
+
 ---
 
 For detailed benchmarking instructions, see `scripts/benchmark.py` and the project README.

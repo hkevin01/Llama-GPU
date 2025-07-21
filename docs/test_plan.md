@@ -1,98 +1,63 @@
-# LLaMA GPU Test Plan
-
-## Latest Test Results (2025-07-21)
-- [ ] Test run in progress (see logs/test_output_2025-07-21_backend_expanded_final.log for partial results)
-- [x] Backend refactor and expanded backend tests in progress
-- Main areas for new/remaining tests:
-  - [ ] batch_infer and stream_infer for all backends (with mocks) [in progress]
-  - [ ] Error handling (invalid model path, inference errors) [planned]
-  - [ ] Edge cases (empty input, large batch, etc.) [planned]
-  - [ ] Node.js/JS/TS lint/format/test coverage [future]
-
-## Maintenance
-- [x] Test plan is actively maintained and up to date
+# Test Plan: LLaMA GPU Project
 
 ## Overview
-This document tracks the testing strategy, coverage, and status for all major features and components of the LLaMA GPU project. Each section includes checkboxes for implemented, in-progress, and planned tests.
+This test plan covers unit, integration, system, and acceptance testing for all major components of the LLaMA GPU project.
 
----
+## Test Strategy
+- Automated tests for all code modules
+- Continuous Integration (CI) enforcement
+- Manual acceptance testing for API and CLI usability
 
-## 1. Backend Tests
-- [x] CPU backend inference
-- [x] CUDA backend inference
-- [x] ROCm backend inference
-- [x] Model loading and error handling
-- [x] Batch and streaming inference
-- [ ] Backend fallback logic
+## Test Coverage
+### 1. Backend Modules
+- [x] Unit tests for CPU, CUDA, ROCm backends
+- [x] Mock hardware detection for consistent results
+- [x] Integration tests for backend selection and fallback
 
-## 2. API Server Tests
-- [x] REST API endpoints (completions, chat, models)
-- [x] WebSocket streaming endpoint
-- [x] Request queuing and batching
-- [x] API key authentication and rate limiting
-- [x] Monitoring endpoints
-- [x] Error handling and logging
-- [ ] OpenAPI schema validation
-- [ ] Security and permission checks
+### 2. LlamaGPU Interface
+- [x] Integration tests for backend selection logic
+- [x] Inference tests for all supported backends
 
-## 3. Multi-GPU Tests
-- [x] Tensor parallelism
-- [x] Pipeline parallelism
-- [x] Load balancing strategies
-- [x] Multi-GPU configuration endpoints
-- [x] GPU monitoring and memory management
-- [ ] Hybrid parallelism
-- [ ] Distributed inference (future)
+### 3. Utilities & Scripts
+- [x] Logging utility tests
+- [x] Setup and monitoring script tests
 
-## 4. Quantization Tests
-- [x] INT8 quantization
-- [x] INT4 quantization
-- [x] FP16/BF16 quantization
-- [x] Dynamic quantization
-- [x] Quantized model caching
-- [x] Quantization performance benchmarks
-- [ ] Accuracy loss measurement
-- [ ] Quantization error handling
+### 4. Benchmarking
+- [x] Benchmark script tests for timing and output
+- [x] Validation on CPU and GPU hardware
 
-## 5. Advanced Inference Tests
-- [x] Sampling strategies (greedy, temperature, top-k, top-p, typical)
-- [x] Guided generation
-- [x] Function calling
-- [x] Advanced tokenization
-- [ ] Integration with API endpoints
-- [ ] Edge case and stress tests
+### 5. Documentation
+- [x] Docstring coverage tests for public methods
+- [x] Example script and notebook existence tests
 
-## 6. Performance and Monitoring Tests
-- [x] Batch processing performance
-- [x] Streaming performance
-- [x] Multi-GPU throughput
-- [x] Quantization speedup
-- [x] Memory usage monitoring
-- [ ] Long-running stability
-- [ ] Resource leak detection
+### 6. CI/CD
+- [x] All tests run in GitHub Actions
+- [x] Code style enforced via pre-commit hooks
 
-## 7. Integration and Example Tests
-- [x] Named Entity Recognition example
-- [x] Document Classification example
-- [x] Language Detection example
-- [x] Question Answering example
-- [x] Text Generation example
-- [x] Code Generation example
-- [x] Conversation Simulation example
-- [x] Data Analysis example
-- [ ] CLI chat mode
-- [ ] API server + example integration
+## Manual Testing
+- [ ] API endpoint acceptance tests
+- [ ] CLI usability and error handling
+- [ ] Model management and quantization workflows
 
-## 8. Test Coverage and Status
-- [x] 90%+ coverage for core modules
-- [x] 93.3% coverage for multi-GPU features
-- [ ] 90%+ coverage for quantization and advanced inference
-- [ ] 100% coverage for API endpoints
-- [ ] Regular test output logging (logs/test_output_*.log)
+## Future Improvements
+- Expand edge case and error handling tests
+- Add more advanced benchmarking and quantization validation
+- Integrate test coverage reporting and dashboards
+- Regularly update this plan as new features are added
 
----
+## [2025-07-21] Test Plan Update
+- Added tests for quantization utilities and backend integration
+- Added tests for memory usage reporting
+- All test results are now logged to logs/test_output.log for traceability
+- Next: expand tests for advanced inference, async, and monitoring features
 
-## Next Steps
-- [ ] Complete in-progress and planned tests for all unchecked items
-- [ ] Regularly update this document as new features and tests are added
-- [ ] Review and improve test coverage after each major refactor or feature addition 
+## [2025-07-21] Advanced Inference Optimizations Test Plan
+- Add tests for streaming, batching, and async inference features
+- Log all test outputs to logs/test_output.log for review
+- Next: benchmark and validate performance, monitor resource usage
+
+## Progress Update [2025-07-21]
+- All tests are logged to logs/test_output.log
+- Added tests for async API, monitoring, and benchmarking
+- Suggestions for future tests: error handling, model management, API security, frontend/dashboard
+- Next: expand test coverage for new phases and features

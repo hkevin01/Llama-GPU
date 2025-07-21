@@ -24,6 +24,8 @@ community include:
   and learning from the experience
 * Focusing on what is best not just for us as individuals, but for the
   overall community
+* Respecting the diversity of the community
+* Collaborating constructively
 
 Examples of unacceptable behavior include:
 
@@ -35,6 +37,8 @@ Examples of unacceptable behavior include:
   address, without their explicit permission
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
+* Harassment, discrimination, or abusive language directed at any individual
+  or group
 
 ## Enforcement Responsibilities
 
@@ -62,6 +66,14 @@ All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
+
+## Reporting
+
+We encourage all community members to report any behavior that makes them feel
+uncomfortable or unsafe. You can report issues by:
+
+* Using the GitHub issues page for this project
+* Contacting the maintainers directly
 
 ## Enforcement Guidelines
 

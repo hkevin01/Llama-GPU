@@ -1,26 +1,27 @@
 # Llama-GPU
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/kevin/Llama-GPU/ci.yml?branch=main)](https://github.com/kevin/Llama-GPU/actions)
-[![Test Coverage](https://img.shields.io/codecov/c/github/kevin/Llama-GPU)](https://codecov.io/gh/kevin/Llama-GPU)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/hkevin01/Llama-GPU/ci.yml?branch=main)](https://github.com/hkevin01/Llama-GPU/actions)
+[![Test Coverage](https://img.shields.io/codecov/c/github/hkevin01/Llama-GPU)](https://codecov.io/gh/hkevin01/Llama-GPU)
 [![PyPI - License](https://img.shields.io/pypi/l/llama-gpu)](LICENSE)
 [![Python Version](https://img.shields.io/pypi/pyversions/llama-gpu)](https://pypi.org/project/llama-gpu/)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![GitHub issues](https://img.shields.io/github/issues/kevin/Llama-GPU)](https://github.com/kevin/Llama-GPU/issues)
-[![GitHub last commit](https://img.shields.io/github/last-commit/kevin/Llama-GPU)](https://github.com/kevin/Llama-GPU/commits/main)
+[![GitHub issues](https://img.shields.io/github/issues/hkevin01/Llama-GPU)](https://github.com/hkevin01/Llama-GPU/issues)
+[![GitHub last commit](https://img.shields.io/github/last-commit/hkevin01/Llama-GPU)](https://github.com/hkevin01/Llama-GPU/commits/main)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/llama-gpu)](https://pypi.org/project/llama-gpu/)
+[![Project Phase](https://img.shields.io/badge/phase-advanced_inference_optimizations-blue)](docs/project-plan.md)
 
 # Llama-GPU
 
-A high-performance GPU-accelerated inference library for LLaMA models, supporting local computers and AWS GPU instances with automatic backend selection, multi-GPU support, and advanced optimization features.
+A high-performance GPU-accelerated inference library for LLaMA models, supporting local computers and AWS GPU instances with automatic backend selection, multi-GPU support, quantization, memory management, and advanced optimization features.
 
 ---
 
 ## 🚀 Project Status
 
-- **Completed Phases:** 1-4 (Core Infrastructure, API Server, Advanced Inference, Multi-GPU Support)
-- **Current Phase:** 5 (Performance Optimizations)
-- **Next Priority:** Quantization Support and Memory Management
-- **Overall Progress:** 60% complete
+- **Completed Phases:** Core Infrastructure, API Server, Multi-GPU Support, Quantization, Memory Management
+- **Current Phase:** Advanced Inference Optimizations (streaming, batching, async)
+- **Next Priority:** Async API integration, benchmarking, monitoring/logging
+- **Overall Progress:** 75% complete
 
 See [Project Plan](docs/project-plan.md) for detailed roadmap and progress.
 
@@ -30,16 +31,16 @@ See [Project Plan](docs/project-plan.md) for detailed roadmap and progress.
 
 - **Multi-Backend Support**: CPU, CUDA (NVIDIA), and ROCm (AMD) backends
 - **Multi-GPU Support**: Tensor parallelism, pipeline parallelism, and load balancing
-- **Quantization Support**: INT8/INT4, FP16/BF16, and dynamic quantization for memory efficiency
+- **Quantization Support**: INT8/FP16 and dynamic quantization for memory efficiency
+- **Memory Management**: Real-time GPU/CPU memory usage reporting
+- **Advanced Inference**: Streaming, batching, and async support
 - **Production-Ready API Server**: FastAPI server with OpenAI-compatible endpoints
 - **Automatic AWS Detection**: Optimizes for AWS GPU instances (p3, p3dn, g4dn, etc.)
 - **Batch Inference**: Process multiple inputs efficiently with dynamic batching
 - **Streaming Inference**: Real-time token generation with WebSocket support
-- **Advanced NLP Examples**: Named Entity Recognition, Document Classification, Language Detection, Question Answering
-- **LLM Performance Examples**: Text Generation, Code Generation, Conversation Simulation, Data Analysis
-- **Cross-Platform**: Works on Linux, macOS, and Windows
-- **Comprehensive Testing**: 100+ test cases covering all functionality
+- **Comprehensive Testing**: 100+ test cases covering all functionality, with outputs logged to `logs/test_output.log`
 - **Production Monitoring**: Request queuing, rate limiting, and resource monitoring
+- **Change Logging**: All major changes and test outputs are logged in `logs/CHANGELOG.md` and `logs/test_output.log`
 
 ---
 
@@ -522,7 +523,7 @@ Llama-GPU/
 
 ## Project Status
 
-### ✅ Completed Features (65% Complete)
+### ✅ Completed Features (75% Complete)
 
 - **Phase 1**: Core Infrastructure ✅
   - Multi-backend support (CPU, CUDA, ROCm)
@@ -549,21 +550,27 @@ Llama-GPU/
   - Multi-GPU API endpoints
   - Comprehensive multi-GPU testing
 
-- **Phase 5**: Performance Optimizations 🚧 (In Progress)
-  - Quantization support (INT8/INT4, FP16/BF16)
+- **Phase 5**: Quantization and Memory Management ✅
+  - Quantization support (INT8/FP16)
+  - Dynamic quantization and memory management
   - Quantized model caching
   - Performance benchmarking
   - Memory optimization
 
-### 🎯 Upcoming Features
-
-- **Phase 5**: Performance Optimizations (Continuing)
-  - Advanced memory management
-  - KV cache optimization
-  - Model optimization techniques
+- **Phase 6**: Advanced Inference Optimizations 🚧 (In Progress)
+  - Async API integration
+  - Advanced streaming and batching
+  - Inference monitoring and logging
   - Performance profiling tools
 
-- **Phase 6**: Advanced Features
+### 🎯 Upcoming Features
+
+- **Phase 6**: Advanced Inference Optimizations (Continuing)
+  - Async API integration
+  - Benchmarking and monitoring
+  - Performance profiling tools
+
+- **Phase 7**: Advanced Features
   - Model fine-tuning support
   - Custom model architectures
   - Advanced caching strategies

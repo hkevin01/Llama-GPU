@@ -9,19 +9,21 @@ from typing import List, Iterator, Optional
 class LlamaGPU:
     """Main interface for LLaMA GPU-accelerated inference."""
     
-    def __init__(self, model_path: str, prefer_gpu: bool = True, auto_detect_aws: bool = True):
+    def __init__(self, model_path: str, prefer_gpu: bool = True, auto_detect_aws: bool = True, quant_type: Optional[str] = None):
         """Initialize LlamaGPU with model and preferred backend.
         
         Args:
             model_path: Path to the LLaMA model
             prefer_gpu: Whether to prefer GPU backends over CPU
             auto_detect_aws: Whether to automatically detect and optimize for AWS GPU instances
+            quant_type: Optional quantization type ('int8', 'float16', etc.)
         """
         self.model_path = model_path
         self.prefer_gpu = prefer_gpu
         self.auto_detect_aws = auto_detect_aws
+        self.quant_type = quant_type
         self.backend = self.select_backend(prefer_gpu)
-        self.backend.load_model(model_path)
+        self.backend.load_model(model_path, quant_type=quant_type)
 
     def select_backend(self, prefer_gpu: bool):
         """Select the best backend based on hardware and user preference.
@@ -114,6 +116,14 @@ class LlamaGPU:
             info['aws_instance'] = False
         
         return info
+
+    def get_memory_usage(self) -> dict:
+        """
+        Get current memory usage for the selected backend (GPU or CPU).
+        Returns:
+            Dictionary with memory usage stats.
+        """
+        return self.backend.get_memory_usage()
 
 # Example usage:
 # llama = LlamaGPU(model_path="path/to/model", prefer_gpu=True)

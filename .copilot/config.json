@@ -1,4 +1,10 @@
 {
   "project": "Llama-GPU",
-  "description": "GPU acceleration for LLaMA models on local and AWS environments."
+  "description": "GPU acceleration for LLaMA models on local and AWS environments.",
+  "phase": "Dependency & Environment Management",
+  "logging": "All changes and test outputs are logged in logs/",
+  "modularity": "Code is modular, maintainable, and well-documented.",
+  "ci_cd": "Multi-platform, GPU/CPU matrix planned",
+  "docs": "Automated API docs and onboarding expansion planned",
+  "security": "Security audit and vulnerability scanning planned"
 }

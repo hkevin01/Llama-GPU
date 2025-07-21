@@ -3,6 +3,49 @@
 ## Project Overview
 A production-ready GPU-accelerated LLaMA inference system with advanced features, comprehensive monitoring, and enterprise-grade reliability.
 
+## File & Folder Organization
+- All source code in `src/`
+- Tests in `tests/`
+- Scripts in `scripts/`
+- Documentation in `docs/`
+- Examples in `examples/`
+- Logs in `logs/`
+- Model files in `models/` (excluded from source control)
+- Virtual environments in `.venv/` or `venv/` (excluded from source control)
+- Node/Frontend files in `node_modules/` (excluded from source control)
+- Cache and checkpoints in `cache/` and `checkpoints/` (excluded from source control)
+- CI/CD workflows in `.github/workflows/`
+- Issue templates in `.github/ISSUE_TEMPLATE/`
+
+## Key Files to Regularly Update
+- `docs/project-plan.md` (this file)
+- `docs/test_plan.md`
+- `docs/benchmarks.md`
+- `docs/scripts.md`
+- `README.md`
+- `CHANGELOG.md`
+- `RELEASE_NOTES.md`
+
+## Progress Tracking
+- Use checkboxes and phase summaries to track completed and in-progress work
+- Update test coverage and manual testing status in `docs/test_plan.md`
+- Document new features, refactors, and improvements in `CHANGELOG.md` and `RELEASE_NOTES.md`
+
+## Future Improvements
+- Continue to expand edge case and error handling coverage
+- Modularize large classes/files for maintainability
+- Add more usage examples and advanced tutorials (scripts, notebooks)
+- Integrate automated doc generation and publish to GitHub Pages
+- Add dependency vulnerability scanning and update automation
+- Regularly revisit completed phases to refine or enhance features
+
+---
+
+# LLaMA GPU Project Plan
+
+## Project Overview
+A production-ready GPU-accelerated LLaMA inference system with advanced features, comprehensive monitoring, and enterprise-grade reliability.
+
 ## Phase 1: Core Infrastructure ✅ COMPLETED
 - [x] Basic LLaMA inference with CPU, CUDA, and ROCm backends
 - [x] Model management with HuggingFace Hub integration
@@ -215,10 +258,39 @@ A production-ready GPU-accelerated LLaMA inference system with advanced features
 - [ ] Add pre-commit hooks for code quality and style
 - [ ] Add dependency vulnerability scanning and update automation
 
-## Additional Suggestions (Ongoing)
-- [ ] Expand edge case and error handling coverage (invalid input, large batch, streaming errors)
-- [ ] Modularize large classes/files for maintainability
-- [ ] Add more usage examples and advanced tutorials (scripts, notebooks)
+## Suggestions for Improvements
+- [ ] Refactor error handling for unified exceptions and logging
+- [ ] Add more unit and integration tests for async API and monitoring
+- [ ] Improve documentation for deployment, scaling, and security
+- [ ] Add support for model versioning and hot-reloading
+- [ ] Implement user authentication and rate limiting for API
+- [ ] Expand benchmarking to cover streaming and resource usage
+- [ ] Add automated release scripts and changelog generation
+- [ ] Enhance frontend/visualization for monitoring and usage stats
+
+## Additional Suggestions for Improvements
+- [ ] Improve dependency management (requirements.txt, package.json, lock files)
+- [ ] Expand CI/CD workflows for multi-platform and GPU/CPU matrix
+- [ ] Automate API documentation generation (OpenAPI, Swagger)
+- [ ] Add security audit and vulnerability scanning
+- [ ] Integrate user feedback and analytics for feature prioritization
+
+## New Phases (with Checkboxes)
+- [ ] Dependency & Environment Management
+- [ ] CI/CD & Automation Expansion
+- [ ] API Documentation Automation
+- [ ] Security & Vulnerability Auditing
+- [ ] User Feedback & Analytics Integration
+
+## Next Phases (with Checkboxes)
+- [ ] Error Handling & Logging Improvements
+- [ ] Test Coverage Expansion
+- [ ] Documentation & Onboarding Expansion
+- [ ] Model Management Features
+- [ ] API Security & Rate Limiting
+- [ ] Benchmarking & Performance Analysis
+- [ ] Release Automation & Changelog
+- [ ] Frontend/Monitoring Dashboard
 
 ## Current Status
 - **Completed Phases**: 1-4 (Core Infrastructure, API Server, Advanced Inference, Multi-GPU Support)
@@ -238,3 +310,10 @@ A production-ready GPU-accelerated LLaMA inference system with advanced features
 2. Add advanced memory management and optimization
 3. Enhance caching and performance monitoring
 4. Begin enterprise security and compliance features
+5. Documentation for advanced inference optimizations (streaming, batching, async) added
+6. Next: implement async wrappers, API endpoints, and benchmarking
+
+## Progress Update [2025-07-21]
+- Completed advanced inference optimizations, async API, monitoring, and logging
+- Expanded documentation, community files, and issue templates
+- Added improvement suggestions and next phases with checkboxes

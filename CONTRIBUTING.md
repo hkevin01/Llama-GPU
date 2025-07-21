@@ -74,6 +74,10 @@ python -m pytest tests/test_aws_detection.py -v
 python -m pytest tests/ -v --cov=src --cov-report=html
 ```
 
+## Onboarding
+- See README and docs/usage.md for setup instructions
+- Use scripts/setup_local.sh or setup_aws.sh for environment setup
+
 ## Code Style
 
 ### Python Style Guide
@@ -224,6 +228,12 @@ docs(readme): update installation instructions
 - Ensure all tests pass
 - Update documentation if needed
 - Add examples for new features
+- Ensure all tests pass and outputs are logged
+- Update CHANGELOG.md and relevant docs
+
+## Community
+- Be respectful and collaborative
+- Use issue templates for bug reports and feature requests
 
 ## Issue Reporting
 

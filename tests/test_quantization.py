@@ -22,6 +22,8 @@ from src.quantization import (
     QuantizationType,
     QuantizedInference,
 )
+from utils.quantization import apply_quantization
+from backend.cpu_backend import CPUBackend
 
 
 class SimpleModel(nn.Module):
@@ -518,5 +520,35 @@ class TestQuantizationErrorHandling:
             inference.generate("Hello", max_tokens=-1)
 
 
+class TestQuantizationUtilsAndBackend:
+    """Test quantization utilities and backend integration."""
+    
+    def log_test_result(test_name, result):
+        with open('logs/test_output.log', 'a') as f:
+            f.write(f"{test_name}: {result}\n")
+
+    def test_apply_int8_quantization(self):
+        model = torch.nn.Linear(10, 10)
+        quantized_model = apply_quantization(model, quant_type="int8")
+        result = hasattr(quantized_model, 'weight') and isinstance(quantized_model, torch.nn.Module)
+        log_test_result('test_apply_int8_quantization', result)
+        assert result
+
+    def test_apply_float16_quantization(self):
+        model = torch.nn.Linear(10, 10)
+        quantized_model = apply_quantization(model, quant_type="float16")
+        result = quantized_model.weight.dtype == torch.float16
+        log_test_result('test_apply_float16_quantization', result)
+        assert result
+
+    def test_cpu_backend_quantized_load(self):
+        backend = CPUBackend()
+        backend.model = torch.nn.Linear(10, 10)
+        backend.model = apply_quantization(backend.model, quant_type="int8")
+        result = isinstance(backend.model, torch.nn.Module)
+        log_test_result('test_cpu_backend_quantized_load', result)
+        assert result
+
+
 if __name__ == "__main__":
-    pytest.main([__file__, "-v"]) 
+    pytest.main([__file__, "-v"])

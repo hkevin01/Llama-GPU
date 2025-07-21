@@ -40,6 +40,18 @@ logs/
 *.out
 *.csv
 *.jsonl
+logs/api_requests.log
+logs/test_output.log
+logs/CHANGELOG.md
+
+# Config files
+.copilot/
+.copilot/config.json
+.prettierrc
+.eslintrc.json
+
+# Monitoring and benchmarks
+scripts/benchmark_async.py
 
 # OS files
 .DS_Store

@@ -274,6 +274,30 @@ info = llama.get_backend_info()
 print(f"Selected backend: {info}")
 ```
 
+## Environment Setup & Dependency Management
+
+### Python
+- Install dependencies: `pip install -r requirements.txt`
+- Recommended: use a virtual environment (`python -m venv .venv`)
+- For GPU: ensure CUDA/ROCm drivers are installed
+
+### Node.js
+- Install dependencies: `npm install`
+- Use scripts for linting, formatting, and pre-commit hooks
+
+See `requirements.txt` and `package.json` for full dependency lists.
+
+## Onboarding
+- Clone repo, run setup scripts, install dependencies
+- See CONTRIBUTING.md for contribution steps
+
+## API Usage
+- See docs/api.md for async endpoints and monitoring
+
+## Monitoring
+- Resource usage endpoints: /monitor/memory, /monitor/gpu
+- Logs: logs/api_requests.log, logs/test_output.log
+
 ## Examples
 
 See the `examples/` directory for complete working examples:

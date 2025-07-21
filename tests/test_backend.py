@@ -66,3 +66,46 @@ def test_infer_error_handling(backend_cls):
     backend.tokenizer = None
     with pytest.raises(Exception):
         backend.infer("input")
+
+
+def log_test_result(test_name, result):
+    with open('logs/test_output.log', 'a') as f:
+        f.write(f"{test_name}: {result}\n")
+
+
+def test_memory_usage_reporting():
+    from backend.cpu_backend import CPUBackend
+    backend = CPUBackend()
+    mem_stats = backend.get_memory_usage()
+    result = 'total_mb' in mem_stats or 'allocated_mb' in mem_stats
+    log_test_result('test_memory_usage_reporting', result)
+    assert result
+
+
+def test_streaming_infer_logging():
+    from backend.cpu_backend import CPUBackend
+    backend = CPUBackend()
+    backend.model = torch.nn.Linear(10, 10)
+    backend.tokenizer = None  # Mock or skip actual tokenizer for test
+    try:
+        # Simulate streaming output
+        tokens = list(backend.stream_infer("test", max_tokens=3))
+        result = len(tokens) == 3
+    except Exception:
+        result = False
+    log_test_result('test_streaming_infer_logging', result)
+    assert result
+
+
+def test_batch_infer_logging():
+    from backend.cpu_backend import CPUBackend
+    backend = CPUBackend()
+    backend.model = torch.nn.Linear(10, 10)
+    backend.tokenizer = None  # Mock or skip actual tokenizer for test
+    try:
+        outputs = backend.batch_infer(["a", "b", "c"], batch_size=2)
+        result = isinstance(outputs, list)
+    except Exception:
+        result = False
+    log_test_result('test_batch_infer_logging', result)
+    assert result
