@@ -1,122 +1,43 @@
-# Python artifacts
+# Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
 *.so
 *.egg
 *.egg-info/
 dist/
 build/
-*.log
-
-# Jupyter Notebooks
-.ipynb_checkpoints/
-*.ipynb
-
-# Virtual environments
-.env/
-.venv/
 venv/
-ENV/
-env.bak/
-venv.bak/
+.env
+.env.*
 
-# Model files and large data
-models/
-checkpoints/
-*.ckpt
-*.pt
-*.bin
-*.h5
-*.onnx
-*.pb
-*.tflite
-cache/
-
-# Logs and outputs
+# Logs
 logs/
 *.log
-*.out
-*.csv
-*.jsonl
-logs/api_requests.log
-logs/test_output.log
-logs/CHANGELOG.md
 
-# Config files
-.copilot/
-.copilot/config.json
-.prettierrc
-.eslintrc.json
+# Jupyter
+.ipynb_checkpoints
 
-# Monitoring and benchmarks
-scripts/benchmark_async.py
+# VS Code
+.vscode/
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# IDE files
-.vscode/
-.idea/
-*.swp
-
-# Docker
-*.pid
-*.db
-*.sqlite3
-Dockerfile*
-.dockerignore
-
-# Sphinx/MkDocs build
-site/
-docs/_build/
-
-# Test and coverage
-.coverage
-htmlcov/
-.tox/
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-
-# Pre-commit
-.pre-commit-config.yaml
-
-# Misc
-*.tmp
-*.bak
-*.pem
-
-# Node/Frontend
+# Node
 node_modules/
-*.lock
-
-# AWS
-*.pem
+package-lock.json
 
 # Copilot
 .copilot/
 
-# Terraform/CloudFormation
-*.tfstate
-*.tfstate.backup
-.terraform/
-*.template
-
-# Blue/Green deployment
-bluegreen/
-
-# Sphinx/MkDocs
-mkdocs.yml
-
-# Test outputs
-*.log
-*.out
-*.csv
-*.jsonl
-
-# Egg-info
-llama_gpu.egg-info/
+# Others
+*.sqlite3
+*.db
+*.pkl
+*.h5
+*.onnx
+*.tf
+*.bak
+*.swp
+*.tmp

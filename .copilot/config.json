@@ -18,5 +18,26 @@
     "Implement alerting/anomaly detection",
     "Expand edge deployment features",
     "Add video tutorials, API explorer, and interactive notebooks"
-  ]
+  ],
+  "projectType": "python",
+  "modules": [
+    "backend",
+    "utils",
+    "fine_tuning",
+    "distributed_inference",
+    "api_security",
+    "advanced_cache",
+    "monitoring_alerts",
+    "edge_optimization",
+    "dashboard",
+    "plugin_manager",
+    "model_compat",
+    "auth_manager",
+    "benchmark_utils",
+    "plugin_templates"
+  ],
+  "testFolder": "tests",
+  "logFolder": "logs",
+  "scriptsFolder": "scripts",
+  "docsFolder": "docs"
 }

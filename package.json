@@ -1,22 +1,27 @@
 {
   "name": "llama-gpu",
-  "version": "0.2.0",
-  "description": "Node.js tooling, scripts, pre-commit hooks, and future frontend/server support for LLaMA-GPU project. Current phase: advanced features scaffolded (fine-tuning, distributed inference, security, caching, monitoring, edge optimization). All changes and test outputs are logged in logs/. Code is modular, maintainable, and well-documented. Next: implement advanced features, expand docs, and add frontend/server integration.",
+  "version": "1.0.0",
+  "description": "Modular, GPU-accelerated LLaMA project with cloud deployment, dashboard, plugins, and benchmarking.",
+  "main": "src/backend/main.py",
   "scripts": {
-    "test": "echo 'No JS tests yet' > logs/test_output.log && echo 'Test output logged.'",
-    "lint": "eslint . --ext .js,.ts",
-    "format": "prettier --write .",
-    "prepare": "husky install",
-    "precommit": "npm run lint && npm run format",
-    "docs": "echo 'Docs generation coming soon'",
-    "start": "echo 'Start frontend/server coming soon'"
+    "test": "pytest tests/",
+    "lint": "flake8 src/ tests/",
+    "start": "python3 src/dashboard.py"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hkevin01/Llama-GPU.git"
+  },
+  "author": "hkevin01",
+  "license": "MIT",
+  "dependencies": {
+    "flask": "^2.0.0",
+    "torch": "^2.0.0",
+    "onnx": "^1.15.0",
+    "tensorflow": "^2.15.0"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^8.37.0",
-    "@typescript-eslint/parser": "^8.37.0",
-    "eslint": "^8.57.1",
-    "prettier": "^3.6.2",
-    "typescript": "^5.8.3",
-    "husky": "^9.0.0"
+    "pytest": "^7.0.0",
+    "flake8": "^6.0.0"
   }
 }
