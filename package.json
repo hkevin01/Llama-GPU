@@ -1,0 +1,22 @@
+{
+  "name": "llama-gpu",
+  "version": "0.1.0",
+  "description": "Node.js tooling, scripts, pre-commit hooks, and future frontend/server support for LLaMA-GPU project (linting, formatting, docs, integration)",
+  "scripts": {
+    "test": "echo 'No JS tests yet'",
+    "lint": "eslint . --ext .js,.ts",
+    "format": "prettier --write .",
+    "prepare": "husky install",
+    "precommit": "npm run lint && npm run format",
+    "docs": "echo 'Docs generation coming soon'",
+    "start": "echo 'Start frontend/server coming soon'"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
+    "eslint": "^8.57.1",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3",
+    "husky": "^9.0.0"
+  }
+}

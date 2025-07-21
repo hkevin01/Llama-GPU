@@ -19,15 +19,9 @@ import torch.distributed as dist
 import torch.nn as nn
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-# Configure logging
-LOG_DIR = "logs"
-logging.basicConfig(
-    filename=f"{LOG_DIR}/multi_gpu.log",
-    level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
-logger = logging.getLogger("multi_gpu")
+from utils.logging import get_logger
+
+logger = get_logger("multi_gpu")
 
 class ParallelismStrategy(Enum):
     """Available parallelism strategies for multi-GPU inference."""

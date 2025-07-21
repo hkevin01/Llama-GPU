@@ -1,38 +1,110 @@
-# Python
+# Python artifacts
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 *.so
 *.egg
 *.egg-info/
 dist/
 build/
-venv/
-.env
-
-# Logs
-logs/
 *.log
 
 # Jupyter Notebooks
 .ipynb_checkpoints/
+*.ipynb
 
-# Models and data
+# Virtual environments
+.env/
+.venv/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Model files and large data
 models/
-*.bin
-*.pt
+checkpoints/
 *.ckpt
+*.pt
+*.bin
 *.h5
 *.onnx
+*.pb
+*.tflite
+cache/
 
-# System
+# Logs and outputs
+logs/
+*.log
+*.out
+*.csv
+*.jsonl
+
+# OS files
 .DS_Store
 Thumbs.db
 
-# VSCode
+# IDE files
 .vscode/
+.idea/
+*.swp
+
+# Docker
+*.pid
+*.db
+*.sqlite3
+Dockerfile*
+.dockerignore
+
+# Sphinx/MkDocs build
+site/
+docs/_build/
+
+# Test and coverage
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Pre-commit
+.pre-commit-config.yaml
+
+# Misc
+*.tmp
+*.bak
+*.pem
+
+# Node/Frontend
+node_modules/
+*.lock
 
 # AWS
 *.pem
 
 # Copilot
 .copilot/
+
+# Terraform/CloudFormation
+*.tfstate
+*.tfstate.backup
+.terraform/
+*.template
+
+# Blue/Green deployment
+bluegreen/
+
+# Sphinx/MkDocs
+mkdocs.yml
+
+# Test outputs
+*.log
+*.out
+*.csv
+*.jsonl
+
+# Egg-info
+llama_gpu.egg-info/

@@ -15,15 +15,9 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import torch
 import torch.nn.functional as F
 
-# Configure logging
-LOG_DIR = "logs"
-logging.basicConfig(
-    filename=f"{LOG_DIR}/advanced_inference.log",
-    level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
-logger = logging.getLogger("advanced_inference")
+from utils.logging import get_logger
+
+logger = get_logger("advanced_inference")
 
 class SamplingStrategy(Enum):
     """Available sampling strategies for text generation."""

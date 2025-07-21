@@ -18,15 +18,11 @@ import torch
 import torch.nn as nn
 from torch.ao.quantization import QConfig, get_default_qconfig, quantize_dynamic
 
+from utils.logging import get_logger
+
 # Configure logging
 LOG_DIR = "logs"
-logging.basicConfig(
-    filename=f"{LOG_DIR}/quantization.log",
-    level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
-logger = logging.getLogger("quantization")
+logger = get_logger("quantization")
 
 class QuantizationType(Enum):
     """Available quantization types."""

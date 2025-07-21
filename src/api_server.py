@@ -29,40 +29,16 @@ from quantization import (
     QuantizationType,
     QuantizedInference,
 )
+from utils.logging import get_logger
 
 # Configure logging
 LOG_DIR = os.environ.get("LLAMA_GPU_LOG_DIR", "logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 
 # API request/response logging
-api_logger = logging.getLogger("api")
-api_logger.setLevel(logging.INFO)
-api_handler = logging.FileHandler(os.path.join(LOG_DIR, "api_requests.log"))
-api_handler.setFormatter(logging.Formatter(
-    "[%(asctime)s] %(levelname)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-))
-api_logger.addHandler(api_handler)
-
-# Batch processing logging
-batch_logger = logging.getLogger("batch")
-batch_logger.setLevel(logging.INFO)
-batch_handler = logging.FileHandler(os.path.join(LOG_DIR, "batch_processing.log"))
-batch_handler.setFormatter(logging.Formatter(
-    "[%(asctime)s] %(levelname)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-))
-batch_logger.addHandler(batch_handler)
-
-# Error logging
-error_logger = logging.getLogger("errors")
-error_logger.setLevel(logging.ERROR)
-error_handler = logging.FileHandler(os.path.join(LOG_DIR, "errors.log"))
-error_handler.setFormatter(logging.Formatter(
-    "[%(asctime)s] %(levelname)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-))
-error_logger.addHandler(error_handler)
+api_logger = get_logger("api")
+batch_logger = get_logger("batch")
+error_logger = get_logger("errors")
 
 app = FastAPI(title="LLaMA GPU API", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])

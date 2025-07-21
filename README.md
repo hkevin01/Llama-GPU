@@ -1,6 +1,30 @@
 # Llama-GPU
 
+[![Build Status](https://img.shields.io/github/actions/workflow/status/kevin/Llama-GPU/ci.yml?branch=main)](https://github.com/kevin/Llama-GPU/actions)
+[![Test Coverage](https://img.shields.io/codecov/c/github/kevin/Llama-GPU)](https://codecov.io/gh/kevin/Llama-GPU)
+[![PyPI - License](https://img.shields.io/pypi/l/llama-gpu)](LICENSE)
+[![Python Version](https://img.shields.io/pypi/pyversions/llama-gpu)](https://pypi.org/project/llama-gpu/)
+[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![GitHub issues](https://img.shields.io/github/issues/kevin/Llama-GPU)](https://github.com/kevin/Llama-GPU/issues)
+[![GitHub last commit](https://img.shields.io/github/last-commit/kevin/Llama-GPU)](https://github.com/kevin/Llama-GPU/commits/main)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/llama-gpu)](https://pypi.org/project/llama-gpu/)
+
+# Llama-GPU
+
 A high-performance GPU-accelerated inference library for LLaMA models, supporting local computers and AWS GPU instances with automatic backend selection, multi-GPU support, and advanced optimization features.
+
+---
+
+## 🚀 Project Status
+
+- **Completed Phases:** 1-4 (Core Infrastructure, API Server, Advanced Inference, Multi-GPU Support)
+- **Current Phase:** 5 (Performance Optimizations)
+- **Next Priority:** Quantization Support and Memory Management
+- **Overall Progress:** 60% complete
+
+See [Project Plan](docs/project-plan.md) for detailed roadmap and progress.
+
+---
 
 ## Features
 
@@ -16,6 +40,8 @@ A high-performance GPU-accelerated inference library for LLaMA models, supportin
 - **Cross-Platform**: Works on Linux, macOS, and Windows
 - **Comprehensive Testing**: 100+ test cases covering all functionality
 - **Production Monitoring**: Request queuing, rate limiting, and resource monitoring
+
+---
 
 ## Quick Start
 
