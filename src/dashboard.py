@@ -5,9 +5,11 @@ Basic Flask dashboard for monitoring and model management.
 
 from flask import Flask, render_template, request
 import logging
+from src.utils.role_manager import RoleManager
 
 app = Flask(__name__)
 logging.basicConfig(filename='logs/dashboard.log', level=logging.INFO)
+role_manager = RoleManager()
 
 @app.route('/')
 def index():
@@ -39,6 +41,16 @@ def run_benchmark():
     def dummy_model(x): return x * 2
     avg, times = benchmark_model(dummy_model, 5, runs=3)
     return {'average_time': avg, 'times': times}
+
+@app.route('/manage', methods=['POST'])
+def manage():
+    data = request.get_json()
+    username = data.get('username')
+    action = data.get('action')
+    if not role_manager.has_permission(username, action):
+        return {'error': 'authorization failed'}, 403
+    # ...existing management logic...
+    return {'status': 'success'}
 
 if __name__ == '__main__':
     app.run(debug=True)

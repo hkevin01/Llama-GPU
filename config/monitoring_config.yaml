@@ -1,0 +1,5 @@
+prometheus:
+  scrape_interval: 15s
+  metrics_path: /metrics
+grafana:
+  alert_endpoint: /alert

@@ -34,7 +34,14 @@
     "model_compat",
     "auth_manager",
     "benchmark_utils",
-    "plugin_templates"
+    "plugin_templates",
+    "structured_logger",
+    "deployment_templates",
+    "api_docs",
+    "edge_deploy",
+    "plugin_marketplace",
+    "plugin_marketplace_ui",
+    "api_rate_limit"
   ],
   "testFolder": "tests",
   "logFolder": "logs",

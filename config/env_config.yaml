@@ -1,0 +1,9 @@
+env: dev
+backend:
+  port: 5000
+dashboard:
+  port: 5001
+monitoring:
+  port: 5002
+plugin_ui:
+  port: 5004
