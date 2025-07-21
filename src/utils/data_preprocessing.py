@@ -22,3 +22,16 @@ def preprocess_input(data: Any) -> str:
     data = to_lower(data)
     data = clean_text(data)
     return data
+
+def preprocess_input(input_data: Any) -> Any:
+    """
+    Preprocess input data for model inference.
+    Args:
+        input_data: Raw input data
+    Returns:
+        Preprocessed input
+    """
+    # Example: strip and lowercase if string
+    if isinstance(input_data, str):
+        return input_data.strip().lower()
+    return input_data

@@ -1,0 +1,3 @@
+# Marketplace Configuration
+remote_url: https://plugins.llama-gpu.com
+cache_enabled: true

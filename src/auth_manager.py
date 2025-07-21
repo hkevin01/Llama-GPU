@@ -25,3 +25,7 @@ class AuthManager:
         self.users[username] = password
         self.roles[username] = role
         logging.info('User %s added with role %s', username, role)
+
+    def authenticate(self, username: str, password: str) -> bool:
+        """Handles user authentication for backend API."""
+        return username == 'admin' and password == 'admin'

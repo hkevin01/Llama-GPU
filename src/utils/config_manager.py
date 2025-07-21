@@ -12,7 +12,14 @@ class ConfigManager:
     def __init__(self, logger: logging.Logger = None):
         self.logger = logger or logging.getLogger('ConfigManager')
 
-    def load_yaml(self, path: str) -> Dict[str, Any]:
+    def load_yaml(self, path: str) -> Any:
+        """
+        Load YAML configuration file.
+        Args:
+            path: Path to YAML file
+        Returns:
+            Parsed config object
+        """
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 config = yaml.safe_load(f)

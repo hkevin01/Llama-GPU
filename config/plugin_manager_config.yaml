@@ -1,0 +1,4 @@
+# Plugin Manager Configuration
+log_level: INFO
+plugin_directory: src/plugin_templates
+max_plugins: 100
