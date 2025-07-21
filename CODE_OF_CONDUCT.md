@@ -121,6 +121,11 @@ individual, or aggression toward or disparagement of classes of individuals.
 **Consequence**: A permanent ban from any sort of public interaction within
 the community.
 
+## Updates (2025)
+- Enforcement contact: Please report violations via GitHub issues or email llama-gpu-maintainers@protonmail.com
+- All contributors must follow the latest standards for respectful, inclusive, and collaborative behavior.
+- See CONTRIBUTING.md for workflow and reporting details.
+
 ## Attribution
 
 This Code of Conduct is adapted from the [Contributor Covenant][homepage],

@@ -7,6 +7,45 @@ on:
     branches: [main]
 
 jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - name: Install Python audit tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit bandit
+      - name: Run pip-audit
+        run: pip-audit -r requirements.txt
+      - name: Run bandit security scan
+        run: bandit -r src/ tests/
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - name: Install Node audit tools
+        run: npm install
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+      - name: Run eslint security scan
+        run: npx eslint src/ --max-warnings=0
+      - name: Upload security audit logs
+        run: |
+          mkdir -p logs
+          cp bandit.json logs/security_bandit.json || true
+          cp npm-debug.log logs/npm_audit.log || true
+          cp pip-audit.log logs/pip_audit.log || true
+        if: always()
+      - name: Upload logs as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-logs
+          path: logs/
+
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -37,7 +76,12 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest tests/ -v --cov=src --cov-report=xml
+          python -m pytest tests/ -v --cov=src --cov-report=xml | tee logs/test_output.log
+      - name: Upload test output log
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output-log
+          path: logs/test_output.log
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -99,3 +143,74 @@ jobs:
       - name: Check package
         run: |
           twine check dist/*
+
+  gpu-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.10]
+        backend: [cpu, cuda, rocm]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run backend tests
+        run: |
+          pytest tests/ --backend=${{ matrix.backend }} | tee logs/gpu_test_output.log
+      - name: Upload GPU test output log
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpu-test-output-log
+          path: logs/gpu_test_output.log
+
+  node-lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - name: Install dependencies
+        run: npm install
+      - name: Run lint
+        run: npm run lint
+      - name: Run tests
+        run: npm run test | tee logs/node_test_output.log
+      - name: Upload Node test output log
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-test-output-log
+          path: logs/node_test_output.log
+
+  docs-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - name: Install Sphinx and MkDocs
+        run: |
+          python -m pip install --upgrade pip
+          pip install sphinx mkdocs
+      - name: Build Sphinx docs
+        run: |
+          cd docs
+          sphinx-apidoc -o source ../src
+          make html
+      - name: Build MkDocs docs
+        run: |
+          mkdocs build
+      - name: Upload built docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-docs
+          path: docs/_build/html

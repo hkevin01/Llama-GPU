@@ -1,14 +1,11 @@
 # Llama-GPU
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/hkevin01/Llama-GPU/ci.yml?branch=main)](https://github.com/hkevin01/Llama-GPU/actions)
-[![Test Coverage](https://img.shields.io/codecov/c/github/hkevin01/Llama-GPU)](https://codecov.io/gh/hkevin01/Llama-GPU)
-[![PyPI - License](https://img.shields.io/pypi/l/llama-gpu)](LICENSE)
-[![Python Version](https://img.shields.io/pypi/pyversions/llama-gpu)](https://pypi.org/project/llama-gpu/)
-[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![GitHub issues](https://img.shields.io/github/issues/hkevin01/Llama-GPU)](https://github.com/hkevin01/Llama-GPU/issues)
-[![GitHub last commit](https://img.shields.io/github/last-commit/hkevin01/Llama-GPU)](https://github.com/hkevin01/Llama-GPU/commits/main)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/llama-gpu)](https://pypi.org/project/llama-gpu/)
-[![Project Phase](https://img.shields.io/badge/phase-advanced_inference_optimizations-blue)](docs/project-plan.md)
+## 📊 Badges
+- **Build Status**: [![Build Status](https://github.com/hkevin01/Llama-GPU/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hkevin01/Llama-GPU/actions)
+- **Test Coverage**: [![Test Coverage](https://codecov.io/gh/hkevin01/Llama-GPU/branch/main/graph/badge.svg)](https://codecov.io/gh/hkevin01/Llama-GPU)
+- **Security Audit**: [![Security Audit](https://img.shields.io/github/workflow/status/hkevin01/Llama-GPU/security-audit?label=security)](https://github.com/hkevin01/Llama-GPU/actions?query=workflow%3Asecurity-audit)
+- **Docs Status**: [![Docs Status](https://img.shields.io/badge/docs-up_to_date-brightgreen)](docs/api.md)
+- **Project Phase**: [![Project Phase](https://img.shields.io/badge/phase-documentation_analytics_release_community-blue)](docs/project-plan.md)
 
 # Llama-GPU
 

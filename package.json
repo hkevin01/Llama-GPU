@@ -1,7 +1,7 @@
 {
   "name": "llama-gpu",
-  "version": "0.1.0",
-  "description": "Node.js tooling, scripts, pre-commit hooks, and future frontend/server support for LLaMA-GPU project (linting, formatting, docs, integration). Current phase: dependency & environment management. Planned: multi-platform CI/CD, automated docs, security audit, analytics integration. All changes and test outputs are logged in logs/. Code is modular, maintainable, and well-documented.",
+  "version": "0.2.0",
+  "description": "Node.js tooling, scripts, pre-commit hooks, and future frontend/server support for LLaMA-GPU project. Current phase: advanced features scaffolded (fine-tuning, distributed inference, security, caching, monitoring, edge optimization). All changes and test outputs are logged in logs/. Code is modular, maintainable, and well-documented. Next: implement advanced features, expand docs, and add frontend/server integration.",
   "scripts": {
     "test": "echo 'No JS tests yet' > logs/test_output.log && echo 'Test output logged.'",
     "lint": "eslint . --ext .js,.ts",

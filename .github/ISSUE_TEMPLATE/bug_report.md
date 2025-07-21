@@ -19,6 +19,12 @@ A clear and concise description of what you expected to happen.
 **Logs and Output**
 Attach relevant logs from `logs/` folder (e.g., api_requests.log, test_output.log).
 
+**Changelog Reference**
+If applicable, link to relevant entry in `logs/CHANGELOG.md`.
+
+**Security/Monitoring**
+If related to security or resource monitoring, attach Prometheus/Grafana dashboard screenshots or metrics.
+
 **Environment (please complete the following information):**
 - OS: [e.g. Linux]
 - Python version: [e.g. 3.10]

@@ -32,6 +32,36 @@ Example:
 python scripts/benchmark_async.py
 ```
 
+# Benchmark Documentation
+
+This guide explains how to run and interpret benchmarks for Llama-GPU.
+
+## Running Benchmarks
+
+Use the provided script to benchmark model inference across backends:
+
+```bash
+python scripts/benchmark.py --model path/to/model --backend all --output-format json
+```
+
+### Options
+- `--backend`: cpu, cuda, rocm, or all
+- `--batch-size`: Batch size for testing
+- `--output-format`: human, csv, or json
+
+## Output
+- Performance metrics (latency, throughput)
+- GPU vs CPU speedup comparisons
+- Token generation rates
+- Memory usage statistics
+- JSON/CSV export for further analysis
+
+## Usage Examples
+See `examples/text_generation.py`, `examples/code_generation.py`, and `examples/conversation_simulation.py` for real-world benchmarking.
+
+---
+_Last updated: July 21, 2025_
+
 ---
 
 For detailed benchmarking instructions, see `scripts/benchmark.py` and the project README.

@@ -15,3 +15,9 @@ A clear and concise description of any alternative solutions or features you've 
 
 **Additional context**
 Add any other context, logs, or screenshots about the feature request here.
+
+**Docs/Benchmarks Reference**
+If relevant, link to documentation or benchmarks in `docs/`.
+
+**Community Impact**
+Describe how this feature will benefit users and contributors.

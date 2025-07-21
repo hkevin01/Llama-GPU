@@ -231,6 +231,21 @@ docs(readme): update installation instructions
 - Ensure all tests pass and outputs are logged
 - Update CHANGELOG.md and relevant docs
 
+## CI/CD, Docs, and Release Workflow
+
+- All code changes are automatically tested and linted via GitHub Actions (see `.github/workflows/ci.yml`).
+- Security audits and test outputs are logged in the `logs/` folder and uploaded as artifacts.
+- Documentation builds (Sphinx/MkDocs) are automated in CI/CD; see `docs-build` job.
+- Benchmarking and monitoring scripts are documented in `docs/benchmarks.md` and `docs/prometheus_monitoring.md`.
+- Publishing instructions are in `docs/publishing.md`.
+- Update the changelog (`logs/CHANGELOG.md`) for every major change.
+
+## Community Standards
+
+- Follow the [Code of Conduct](CODE_OF_CONDUCT.md) in all interactions.
+- Use issue templates for bug reports and feature requests.
+- Review the [Project Plan](docs/project-plan.md) for current milestones.
+
 ## Community
 - Be respectful and collaborative
 - Use issue templates for bug reports and feature requests
