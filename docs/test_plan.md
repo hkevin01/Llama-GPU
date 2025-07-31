@@ -133,6 +133,22 @@ This test plan covers unit, integration, system, and acceptance testing for all 
 ## Phase 17: Documentation & Config Review Cycle
 - [ ] Test documentation and config updates
 
+## Next Steps & Manual Testing [2025-07-21]
+- [ ] API endpoint acceptance tests (dashboard, plugin manager, role manager)
+- [ ] CLI usability and error handling (all modules)
+- [ ] Model management and quantization workflows
+- [ ] Role manager: user/role management, audit logging, API endpoint tests
+- [ ] Marketplace: advanced search/filter, publish/rate, UI/endpoint tests
+- [ ] Monitoring: alerting, dashboard visualizations, integration tests
+- [ ] Edge deployment & distributed inference: script and workflow tests
+
+## Automated Test Coverage Expansion
+- [ ] Add unit tests for role manager (user, role, permission, audit log)
+- [ ] Add integration tests for plugin manager and role manager interaction
+- [ ] Add UI tests for dashboard and marketplace
+- [ ] Add monitoring and alerting tests
+- [ ] Add edge deployment and distributed inference tests
+
 ## Future Improvements
 - [ ] Expand test coverage for new API endpoints
 - [ ] Add real monitoring/alerting integration tests

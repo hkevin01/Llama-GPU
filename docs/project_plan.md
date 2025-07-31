@@ -42,3 +42,15 @@ This project plan outlines the architecture, modules, milestones, and future imp
 - [2025-07-21] Initial plan and progress update
 - [2025-07-21] Added plugin health, config validation, dashboard/marketplace UI milestones
 - [2025-07-21] Updated file/folder organization and documentation milestones
+
+## New Phases & Improvements [2025-07-21]
+- [ ] Expand plugin marketplace features (search, filter, publish, rate)
+- [ ] Add advanced monitoring and real-time alerting
+- [ ] Integrate dashboard visualizations for health metrics
+- [ ] Implement edge deployment scripts and documentation
+- [ ] Add distributed inference support for multi-node clusters
+- [ ] Enhance role-based access control and audit logging
+- [ ] Add user management UI and API endpoints
+- [ ] Expand test coverage and automate CI/CD for new modules
+- [ ] Add usage examples, troubleshooting guides, and video tutorials
+- [ ] Regularly update API and config documentation

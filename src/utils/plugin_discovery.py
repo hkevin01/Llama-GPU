@@ -14,8 +14,12 @@ def discover_plugins() -> List[str]:
         List of plugin module names
     """
     plugins = []
-    for fname in os.listdir(PLUGIN_DIR):
-        if fname.endswith('.py') and not fname.startswith('__'):
-            plugins.append(fname[:-3])
+    try:
+        if os.path.exists(PLUGIN_DIR):
+            for fname in os.listdir(PLUGIN_DIR):
+                if fname.endswith('.py') and not fname.startswith('__'):
+                    plugins.append(fname[:-3])
+    except (OSError, FileNotFoundError):
+        pass  # Return empty list if directory doesn't exist
     return plugins
 
