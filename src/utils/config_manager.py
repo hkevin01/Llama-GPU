@@ -8,6 +8,24 @@ import json
 import logging
 from typing import Any, Dict
 
+def load_config(path: str) -> Any:
+    """
+    Load configuration from a YAML or JSON file.
+    Args:
+        path: Path to config file
+    Returns:
+        Parsed config object
+    """
+    if path.endswith('.yaml') or path.endswith('.yml'):
+        with open(path, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
+    elif path.endswith('.json'):
+        with open(path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    else:
+        raise ValueError('Unsupported config file format')
+
+
 class ConfigManager:
     def __init__(self, logger: logging.Logger = None):
         self.logger = logger or logging.getLogger('ConfigManager')

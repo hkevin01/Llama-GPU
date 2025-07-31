@@ -13,7 +13,7 @@ import importlib
 import logging
 from typing import Dict, Optional, Any, List
 from src.utils.plugin_utils import has_method
-from src.utils.error_handler import log_error
+from src.utils.error_handling import log_error
 from src.utils.plugin_metadata import get_metadata
 from src.utils.plugin_discovery import discover_plugins
 from src.utils.plugin_dependency import check_dependencies

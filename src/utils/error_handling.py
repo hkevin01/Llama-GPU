@@ -5,7 +5,23 @@ import traceback
 from typing import Optional, Callable, Any
 from contextlib import contextmanager
 
+# Configure logging for error handler compatibility
+logging.basicConfig(filename='logs/error_handler.log', level=logging.ERROR)
+
 logger = logging.getLogger(__name__)
+
+def log_error(message: str, exc: Optional[Exception] = None) -> None:
+    """
+    Log an error message with optional exception details.
+    
+    Args:
+        message: Error message
+        exc: Exception object (optional)
+    """
+    if exc:
+        logging.error('%s Exception: %s', message, exc)
+    else:
+        logging.error('%s', message)
 
 class LlamaGPUError(Exception):
     """Base exception for Llama-GPU errors."""
@@ -173,4 +189,4 @@ def get_system_info() -> dict:
     except AttributeError:
         info['rocm_available'] = False
     
-    return info 
+    return info
