@@ -1,56 +1,61 @@
-# Project Plan: LLaMA GPU Project
+# Llama-GPU Project Plan
 
-## Overview
-This project plan outlines the architecture, modules, milestones, and future improvements for the LLaMA GPU project. The goal is to deliver a modular, maintainable, and production-ready system for LLaMA model deployment and management on GPU hardware.
+## Current Phase: Plugin System Expansion
+- [x] Modular plugin manager with event hooks
+- [x] Plugin discovery, metadata, dependency management
+- [x] CLI utility for plugin management
+- [x] Plugin health monitoring
+- [x] Config validation utility
+- [x] Dashboard plugin UI
+- [x] Marketplace UI
+- [x] API documentation
+- [x] Configuration files for all modules
 
-## Architecture & Modules
-- Modular backend (CPU, CUDA, ROCm)
-- Plugin Manager (dynamic loading, validation, event hooks)
-- Dashboard (Flask UI for management)
-- Plugin Marketplace (UI and backend)
-- Monitoring (Prometheus integration, plugin health)
-- Config Manager (YAML/JSON config loading)
-- Role Manager (user/role management)
-- Utilities (logging, error handling, data preprocessing)
-- CI/CD (GitHub Actions)
-- Documentation (API docs, module docs)
+## Next Phases
 
-## Milestones
-1. Backend implementation and testing
-2. Plugin Manager core features
-3. Dashboard and Marketplace UI
-4. Monitoring and health checks
-5. Config and role management
-6. CI/CD and documentation
-7. Advanced features: edge deployment, quantization, distributed inference
+### ☐ Code Quality & Documentation
+- ☐ Refactor for PEP8 compliance (line length, blank lines, unused imports)
+- ☐ Add comprehensive docstrings to all modules/functions
+- ☐ Auto-generate API documentation
 
-## Recent Progress [2025-07-21]
-- All core modules implemented and tested
-- PluginManager fully featured (event hooks, validation, health, versioning)
-- Dashboard and marketplace UI blueprints created
-- Monitoring and config validation utilities added
-- Documentation and test plans updated
-- File/folder structure organized per project requirements
+### ☐ Testing & Validation
+- ☐ Expand unit/integration tests for plugin system and event hooks
+- ☐ Add tests for error handling and dependency management
 
-## Future Improvements
-- Expand plugin marketplace features
-- Add more advanced monitoring and alerting
-- Integrate edge deployment and distributed inference
-- Regularly update this plan as new features are added
+### ☐ Plugin System Features
+- ☐ Add plugin versioning and compatibility checks
+- ☐ Implement hot-reload and rollback for plugins
 
-## Update Log
-- [2025-07-21] Initial plan and progress update
-- [2025-07-21] Added plugin health, config validation, dashboard/marketplace UI milestones
-- [2025-07-21] Updated file/folder organization and documentation milestones
+### ☐ Dashboard & Marketplace Integration
+- ☐ Expose plugin management in dashboard UI
+- ☐ Build plugin marketplace for discovery, install, update
 
-## New Phases & Improvements [2025-07-21]
-- [ ] Expand plugin marketplace features (search, filter, publish, rate)
-- [ ] Add advanced monitoring and real-time alerting
-- [ ] Integrate dashboard visualizations for health metrics
-- [ ] Implement edge deployment scripts and documentation
-- [ ] Add distributed inference support for multi-node clusters
-- [ ] Enhance role-based access control and audit logging
-- [ ] Add user management UI and API endpoints
-- [ ] Expand test coverage and automate CI/CD for new modules
-- [ ] Add usage examples, troubleshooting guides, and video tutorials
-- [ ] Regularly update API and config documentation
+### ☐ Monitoring & Health
+- ☐ Add plugin health/status monitoring
+- ☐ Integrate alerting for plugin failures
+
+### ☐ Config Management
+- ☐ Standardize config files for plugins and core modules
+- ☐ Add config validation utilities
+
+---
+
+## Source Files to Create/Modify
+
+**Created:**
+- src/monitoring/plugin_health.py
+- src/utils/config_validator.py
+- src/dashboard/plugin_ui.py
+- src/marketplace/marketplace_ui.py
+- docs/api_docs.md
+- config/plugin_manager_config.yaml
+- config/dashboard_config.yaml
+- config/marketplace_config.yaml
+- config/monitoring_config.yaml
+
+**To Modify:**
+- src/plugin_manager.py (refactor, add versioning, compatibility, hot-reload)
+- src/dashboard.py (integrate plugin management endpoints/UI)
+- src/plugin_loader_cli.py (add version/compatibility commands)
+- src/utils/error_handler.py (expand error reporting)
+- tests/ (add/expand tests for new features)

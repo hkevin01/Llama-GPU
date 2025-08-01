@@ -1,0 +1,7 @@
+# Plugin Configuration Template
+# Fill in required fields for each plugin
+name: example_plugin
+description: Example plugin for Llama-GPU
+version: 1.0.0
+author: Your Name
+entry_point: src.plugin_templates.example_plugin

@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+.env
+.env.*
+
+# Logs
+logs/
+*.log
+
+# Jupyter
+.ipynb_checkpoints
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+package-lock.json
+
+# Copilot
+.copilot/
+
+# Others
+*.sqlite3
+*.db
+*.pkl
+*.h5
+*.onnx
+*.tf
+*.bak
+*.swp
+*.tmp

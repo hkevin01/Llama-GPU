@@ -1,0 +1,140 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llama-gpu"
+version = "1.0.0"
+description = "A high-performance GPU-accelerated inference library for LLaMA models"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Kevin", email = "your.email@example.com" }]
+keywords = ["llama", "gpu", "inference", "machine-learning", "transformers"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "torch>=2.0.0",
+    "transformers>=4.30.0",
+    "sentencepiece>=0.1.99",
+    "accelerate>=0.20.0",
+    "datasets>=2.12.0",
+    "numpy>=1.24.0",
+    "scikit-learn>=1.3.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "pandas>=2.0.0",
+    "requests>=2.31.0",
+    "tqdm>=4.65.0",
+    "psutil>=5.9.0",
+    "GPUtil>=1.4.0",
+    "boto3>=1.28.0",
+    "fastapi>=0.116.0",
+    "uvicorn>=0.35.0",
+    "httpx>=0.28.0",
+    "websockets>=15.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.11.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.5.0",
+]
+docs = ["sphinx>=7.0.0", "sphinx-rtd-theme>=1.3.0", "myst-parser>=2.0.0"]
+
+[project.urls]
+Homepage = "https://github.com/hkevin01/Llama-GPU"
+Documentation = "https://github.com/hkevin01/Llama-GPU/docs"
+Repository = "https://github.com/hkevin01/Llama-GPU.git"
+Issues = "https://github.com/hkevin01/Llama-GPU/issues"
+
+[project.scripts]
+llama-gpu = "llama_gpu.cli:main"
+llama-gpu-server = "llama_gpu.api.server:main"
+llama-gpu-benchmark = "llama_gpu.benchmark:main"
+
+[tool.setuptools]
+package-dir = { "" = "core/src" }
+
+[tool.setuptools.packages.find]
+where = ["core/src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py38", "py39", "py310", "py311"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["llama_gpu"]
+
+[tool.pytest.ini_options]
+testpaths = ["core/tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = ["--strict-markers", "--strict-config", "--verbose"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "gpu: marks tests that require GPU",
+]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "torch.*",
+    "transformers.*",
+    "sentencepiece.*",
+    "accelerate.*",
+    "datasets.*",
+    "GPUtil.*",
+]
+ignore_missing_imports = true

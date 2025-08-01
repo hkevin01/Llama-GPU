@@ -1,58 +1,30 @@
 {
-  "name": "llama-gpu-interface",
+  "name": "llama-gpu",
   "version": "1.0.0",
-  "description": "Modern GUI interface for Llama-GPU model inference management",
-  "main": "public/electron.js",
-  "private": true,
+  "description": "Modular, GPU-accelerated LLaMA project with cloud deployment, dashboard, plugins, and benchmarking.",
+  "main": "src/backend/main.py",
+  "scripts": {
+    "test": "pytest tests/",
+    "lint": "flake8 src/ tests/",
+    "start": "python3 src/dashboard.py"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hkevin01/Llama-GPU.git"
+  },
+  "author": "hkevin01",
+  "license": "MIT",
   "dependencies": {
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.14.3",
-    "@mui/material": "^5.14.3",
-    "@mui/x-charts": "^6.0.0",
-    "axios": "^1.4.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.14.1",
-    "react-scripts": "5.0.1",
-    "socket.io-client": "^4.7.2",
-    "recharts": "^2.7.2",
-    "material-ui-colors": "^1.0.0",
-    "react-syntax-highlighter": "^15.5.0",
-    "react-hotkeys-hook": "^4.4.1",
-    "framer-motion": "^10.12.18"
+    "flask": "^2.0.0",
+    "torch": "^2.0.0",
+    "onnx": "^1.15.0",
+    "tensorflow": "^2.15.0",
+    "prometheus_client": "^0.17.0",
+    "pyyaml": "^6.0.0",
+    "requests": "^2.31.0"
   },
   "devDependencies": {
-    "electron": "^25.3.0",
-    "concurrently": "^8.2.0",
-    "wait-on": "^7.0.1"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "electron": "electron .",
-    "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron-pack": "npm run build && electron ."
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "homepage": "./"
+    "pytest": "^7.0.0",
+    "flake8": "^6.0.0"
+  }
 }

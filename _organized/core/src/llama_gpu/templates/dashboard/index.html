@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - LLaMA GPU{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-speedometer2 me-2"></i>
+        System Dashboard
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshDashboard()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportData()">
+                <i class="bi bi-download"></i> Export
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Status Cards Row -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            System Status
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="system-status">
+                            <i class="bi bi-circle-fill text-success me-2"></i>Online
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-pc-display-horizontal fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Active Plugins
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="plugin-count-card">
+                            Loading...
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-puzzle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            GPU Utilization
+                        </div>
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800" id="gpu-utilization">
+                                    45%
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="progress progress-sm mr-2">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 45%"
+                                         id="gpu-progress" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-gpu-card fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Memory Usage
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="memory-usage">
+                            8.2 / 16 GB
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-memory fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <!-- Performance Chart -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-graph-up me-2"></i>
+                    Performance Overview
+                </h6>
+                <div class="dropdown no-arrow">
+                    <button class="btn btn-link btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots-vertical text-gray-400"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right shadow">
+                        <a class="dropdown-item" href="#" onclick="refreshChart()">Refresh Chart</a>
+                        <a class="dropdown-item" href="#" onclick="exportChart()">Export Data</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="performanceChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Recent Activity
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush" id="recent-activity">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">2 minutes ago</small><br>
+                            Plugin "monitoring" loaded
+                        </div>
+                        <span class="badge bg-success rounded-pill">Success</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">5 minutes ago</small><br>
+                            Model deployment started
+                        </div>
+                        <span class="badge bg-info rounded-pill">Info</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">10 minutes ago</small><br>
+                            System startup completed
+                        </div>
+                        <span class="badge bg-primary rounded-pill">System</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-lightning me-2"></i>
+                    Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <button class="btn btn-primary w-100" onclick="runBenchmark()">
+                            <i class="bi bi-speedometer me-2"></i>
+                            Run Benchmark
+                        </button>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <button class="btn btn-success w-100" onclick="loadPlugin()">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Load Plugin
+                        </button>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <button class="btn btn-info w-100" onclick="deployModel()">
+                            <i class="bi bi-cpu me-2"></i>
+                            Deploy Model
+                        </button>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <button class="btn btn-warning w-100" onclick="viewLogs()">
+                            <i class="bi bi-file-text me-2"></i>
+                            View Logs
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-info-circle me-2"></i>
+                    System Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <td><strong>Version:</strong></td>
+                            <td>LLaMA GPU v1.0.0</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Backend:</strong></td>
+                            <td id="backend-info">Auto-detect</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Uptime:</strong></td>
+                            <td id="uptime">00:45:32</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Last Backup:</strong></td>
+                            <td>2025-08-01 10:30</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    // Initialize dashboard when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeDashboard();
+        loadPluginCount();
+        initializeWebSocket();
+    });
+</script>
+{% endblock %}
