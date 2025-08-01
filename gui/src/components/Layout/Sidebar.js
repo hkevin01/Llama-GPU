@@ -1,16 +1,15 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  BarChart3, 
-  FileText, 
-  CheckSquare, 
-  GitCompare, 
-  Settings, 
-  Menu,
-  X,
-  Home,
-  Zap
+import {
+    BarChart3,
+    CheckSquare,
+    FileText,
+    GitCompare,
+    Home,
+    Menu,
+    Settings,
+    X,
+    Zap
 } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
 const navigation = [
@@ -35,7 +34,7 @@ function Sidebar({ collapsed, onToggle }) {
               <span className="brand-text">LLaMA GPU</span>
             </>
           )}
-          <button 
+          <button
             className="sidebar-toggle"
             onClick={onToggle}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -48,9 +47,9 @@ function Sidebar({ collapsed, onToggle }) {
       <nav className="sidebar-nav">
         <ul className="nav-list">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href || 
+            const isActive = location.pathname === item.href ||
               (item.href === '/dashboard' && location.pathname === '/');
-            
+
             return (
               <li key={item.name} className="nav-item">
                 <Link

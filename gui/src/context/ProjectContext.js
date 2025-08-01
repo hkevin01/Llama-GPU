@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useEffect, useReducer } from 'react';
 
 const ProjectContext = createContext();
 
@@ -412,7 +412,7 @@ export function ProjectProvider({ children }) {
   const contextValue = {
     state,
     dispatch,
-    
+
     // Helper functions
     getTaskById: (id) => state.tasks.find(task => task.id === id),
     getFilteredTasks: () => {
@@ -433,7 +433,7 @@ export function ProjectProvider({ children }) {
       const inProgress = tasks.filter(t => t.status === 'progress').length;
       const blocked = tasks.filter(t => t.status === 'blocked').length;
       const notStarted = tasks.filter(t => t.status === 'not-started').length;
-      
+
       return {
         total,
         completed,
@@ -460,3 +460,5 @@ export function useProject() {
   }
   return context;
 }
+
+export { ProjectContext };

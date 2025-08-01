@@ -1,16 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  TrendingUp, 
-  Clock, 
-  Users, 
-  AlertTriangle,
-  CheckCircle2,
-  Play,
-  Pause,
-  Target,
-  Calendar
+import { ArcElement, BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, LineElement, PointElement, Title, Tooltip } from 'chart.js';
+import {
+    AlertTriangle,
+    Calendar,
+    CheckCircle2,
+    Play,
+    Target
 } from 'lucide-react';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, LineElement, PointElement } from 'chart.js';
+import { useEffect, useState } from 'react';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import { useProject } from '../../context/ProjectContext';
 import './Dashboard.css';
@@ -103,8 +99,8 @@ function Dashboard() {
           </p>
         </div>
         <div className="header-actions">
-          <select 
-            value={timeframe} 
+          <select
+            value={timeframe}
             onChange={(e) => setTimeframe(e.target.value)}
             className="timeframe-select"
           >
@@ -222,8 +218,8 @@ function Dashboard() {
                 </div>
                 <div className="activity-progress">
                   <div className="progress-bar">
-                    <div 
-                      className="progress-fill" 
+                    <div
+                      className="progress-fill"
                       style={{ width: `${task.progress}%` }}
                     />
                   </div>

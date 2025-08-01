@@ -1,5 +1,4 @@
-import React from 'react';
-import { Search, Bell, User, RefreshCw } from 'lucide-react';
+import { Bell, RefreshCw, Search, User } from 'lucide-react';
 import { useProject } from '../../context/ProjectContext';
 import './Header.css';
 
@@ -38,7 +37,7 @@ function Header({ onSidebarToggle }) {
         </div>
 
         <div className="header-right">
-          <button 
+          <button
             className="header-action refresh-btn"
             onClick={handleRefresh}
             title="Refresh Data"
@@ -46,7 +45,7 @@ function Header({ onSidebarToggle }) {
             <RefreshCw size={20} />
           </button>
 
-          <button 
+          <button
             className="header-action notification-btn"
             onClick={toggleNotifications}
             title="Notifications"

@@ -459,7 +459,7 @@
   .chart-row {
     grid-template-columns: 1fr;
   }
-  
+
   .activity-section {
     grid-template-columns: 1fr;
   }
@@ -471,19 +471,19 @@
     gap: 16px;
     align-items: stretch;
   }
-  
+
   .metrics-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .metric-card {
     padding: 16px;
   }
-  
+
   .chart-card {
     padding: 16px;
   }
-  
+
   .team-grid {
     grid-template-columns: 1fr;
   }

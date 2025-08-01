@@ -235,7 +235,7 @@
   .sidebar {
     transform: translateX(-100%);
   }
-  
+
   .sidebar.collapsed {
     transform: translateX(0);
     width: 80px;
@@ -247,11 +247,11 @@
     width: 100%;
     transform: translateX(-100%);
   }
-  
+
   .sidebar.collapsed {
     transform: translateX(-100%);
   }
-  
+
   .sidebar.mobile-open {
     transform: translateX(0);
   }

@@ -173,19 +173,19 @@
   .header-content {
     padding: 12px 16px;
   }
-  
+
   .search-container {
     max-width: 200px;
   }
-  
+
   .user-name {
     display: none;
   }
-  
+
   .breadcrumb-content {
     flex-wrap: wrap;
   }
-  
+
   .last-updated {
     margin-left: 0;
     width: 100%;
@@ -197,11 +197,11 @@
   .search-container {
     display: none;
   }
-  
+
   .header-left {
     display: none;
   }
-  
+
   .header-content {
     justify-content: flex-end;
   }

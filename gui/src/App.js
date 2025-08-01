@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import Sidebar from './components/Layout/Sidebar';
-import Header from './components/Layout/Header';
-import Dashboard from './components/Pages/Dashboard';
-import ProjectPlans from './components/Pages/ProjectPlans';
-import ProgressTracker from './components/Pages/ProgressTracker';
-import PlanComparison from './components/Pages/PlanComparison';
-import Settings from './components/Pages/Settings';
-import TaskModal from './components/Modals/TaskModal';
-import NotificationCenter from './components/Common/NotificationCenter';
-import { ProjectProvider } from './context/ProjectContext';
+import { useEffect, useState } from 'react';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import './App.css';
+import NotificationCenter from './components/Common/NotificationCenter';
+import Header from './components/Layout/Header';
+import Sidebar from './components/Layout/Sidebar';
+import TaskModal from './components/Modals/TaskModal';
+import Dashboard from './components/Pages/Dashboard';
+import PlanComparison from './components/Pages/PlanComparison';
+import ProgressTracker from './components/Pages/ProgressTracker';
+import ProjectPlans from './components/Pages/ProjectPlans';
+import Settings from './components/Pages/Settings';
+import { ProjectProvider } from './context/ProjectContext';
 
 function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -45,14 +45,14 @@ function App() {
   return (
     <ProjectProvider>
       <div className="app">
-        <Sidebar 
-          collapsed={sidebarCollapsed} 
+        <Sidebar
+          collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
-        
+
         <div className={`main-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
           <Header onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
-          
+
           <main className="page-content">
             <Routes>
               <Route path="/" element={<Dashboard />} />

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save, Calendar, User, Tag, AlertCircle } from 'lucide-react';
+import { AlertCircle, Calendar, Save, Tag, User, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useProject } from '../../context/ProjectContext';
 import './TaskModal.css';
 
@@ -58,15 +58,15 @@ function TaskModal() {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.title?.trim()) {
       newErrors.title = 'Title is required';
     }
-    
+
     if (!formData.description?.trim()) {
       newErrors.description = 'Description is required';
     }
-    
+
     if (formData.plannedStart && formData.plannedEnd) {
       if (new Date(formData.plannedStart) > new Date(formData.plannedEnd)) {
         newErrors.plannedEnd = 'End date must be after start date';
@@ -79,7 +79,7 @@ function TaskModal() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -93,7 +93,7 @@ function TaskModal() {
           blockers: []
         }
       });
-      
+
       dispatch({
         type: 'ADD_NOTIFICATION',
         payload: {
@@ -110,7 +110,7 @@ function TaskModal() {
           updates: formData
         }
       });
-      
+
       dispatch({
         type: 'ADD_NOTIFICATION',
         payload: {
@@ -126,7 +126,7 @@ function TaskModal() {
 
   const handleStatusChange = (newStatus) => {
     let newProgress = formData.progress;
-    
+
     switch (newStatus) {
       case 'complete':
         newProgress = 100;
@@ -141,7 +141,7 @@ function TaskModal() {
         // For 'progress' status, keep current progress
         break;
     }
-    
+
     handleInputChange('status', newStatus);
     handleInputChange('progress', newProgress);
   };
@@ -380,8 +380,8 @@ function TaskModal() {
                 <button type="button" className="btn btn-secondary" onClick={handleClose}>
                   Close
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn btn-primary"
                   onClick={() => dispatch({
                     type: 'OPEN_TASK_MODAL',
