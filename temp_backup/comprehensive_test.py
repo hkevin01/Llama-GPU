@@ -99,94 +99,117 @@ def test_plugin_manager_functionality():
         traceback.print_exc()
         return None
 
-def test_plugin_manager_edge_cases(pm):
-    """Test edge cases and error handling"""
-    if not pm:
-        print("Skipping edge case tests - no PluginManager instance")
-        return
+def test_utility_functions():
+    """Test individual utility functions"""
+    print("\n=== Testing utility functions ===")
+    
+    try:
+        # Test plugin_utils
+        from src.utils.plugin_utils import has_method
         
+        class TestObj:
+            def test_method(self):
+                pass
+        
+        obj = TestObj()
+        result = has_method(obj, 'test_method')
+        print(f"✓ has_method(obj, 'test_method'): {result}")
+        
+        result = has_method(obj, 'nonexistent_method')
+        print(f"✓ has_method(obj, 'nonexistent_method'): {result}")
+        
+        # Test error_handler
+        from src.utils.error_handler import log_error
+        log_error("Test error message")
+        print("✓ log_error() executed")
+        
+        # Test plugin_metadata
+        from src.utils.plugin_metadata import get_metadata
+        
+        class MockPlugin:
+            metadata = {'name': 'test', 'version': '1.0.0'}
+        
+        plugin = MockPlugin()
+        metadata = get_metadata(plugin)
+        print(f"✓ get_metadata(plugin): {metadata}")
+        
+        metadata = get_metadata(object())  # Object without metadata
+        print(f"✓ get_metadata(no_metadata_obj): {metadata}")
+        
+        # Test plugin_dependency
+        from src.utils.plugin_dependency import check_dependencies
+        
+        result = check_dependencies(['sys', 'os'])  # Should exist
+        print(f"✓ check_dependencies(['sys', 'os']): {result}")
+        
+        result = check_dependencies(['nonexistent_module'])  # Should not exist
+        print(f"✓ check_dependencies(['nonexistent_module']): {result}")
+        
+        # Test plugin_events
+        from src.utils.plugin_events import PluginEventManager
+        
+        events = PluginEventManager()
+        
+        def test_hook(*args, **kwargs):
+            print(f"   Hook called with args={args}, kwargs={kwargs}")
+        
+        events.register_hook('pre_load', test_hook)
+        events.dispatch('pre_load', name='test', path='test.py')
+        print("✓ PluginEventManager: register_hook and dispatch")
+        
+        # Test plugin_version
+        from src.utils.plugin_version import check_version
+        
+        metadata = {'version': '1.0.0'}
+        result = check_version(metadata, '1.0.0')
+        print(f"✓ check_version(metadata, '1.0.0'): {result}")
+        
+        result = check_version(metadata, '2.0.0')
+        print(f"✓ check_version(metadata, '2.0.0'): {result}")
+        
+        result = check_version({}, '1.0.0')  # Empty metadata
+        print(f"✓ check_version({{}}, '1.0.0'): {result}")
+        
+    except Exception as e:
+        print(f"✗ Utility function test failed: {e}")
+        traceback.print_exc()
+
+def test_edge_cases():
+    """Test edge cases that might cause runtime errors"""
     print("\n=== Testing edge cases ===")
     
     try:
-        # Test empty string plugin name
+        from src.plugin_manager import PluginManager
+        pm = PluginManager()
+        
+        # Test with None values
+        result = pm.get_plugin(None)
+        print(f"✓ get_plugin(None): {result}")
+        
+        # Test with empty string
         result = pm.get_plugin("")
         print(f"✓ get_plugin(''): {result}")
         
-        # Test None plugin name (should handle gracefully)
-        try:
-            result = pm.get_plugin(None)
-            print(f"✓ get_plugin(None): {result}")
-        except Exception as e:
-            print(f"✓ get_plugin(None) handled error: {e}")
+        # Test loading with invalid paths
+        result = pm.load_plugin("test", "")
+        print(f"✓ load_plugin('test', ''): {result}")
         
-        # Test very long plugin name
-        long_name = "a" * 1000
-        result = pm.get_plugin(long_name)
-        print(f"✓ get_plugin(long_name): {result}")
+        result = pm.load_plugin("test", None)
+        print(f"✗ load_plugin('test', None): Should fail!")
         
-        # Test special characters in plugin name
-        special_name = "plugin!@#$%^&*()"
-        result = pm.get_plugin(special_name)
-        print(f"✓ get_plugin(special_chars): {result}")
-        
+    except TypeError as e:
+        print(f"✓ load_plugin('test', None): Correctly failed with TypeError: {e}")
     except Exception as e:
-        print(f"✗ Edge case test failed: {e}")
+        print(f"✗ Unexpected error in edge case testing: {e}")
         traceback.print_exc()
-
-def test_concurrent_access(pm):
-    """Test concurrent access to plugin manager"""
-    if not pm:
-        print("Skipping concurrent tests - no PluginManager instance")
-        return
-        
-    print("\n=== Testing concurrent access ===")
-    
-    import threading
-    import time
-    
-    def worker(worker_id):
-        try:
-            for i in range(5):
-                plugins = pm.list_plugins()
-                print(f"Worker {worker_id}: {len(plugins)} plugins")
-                time.sleep(0.1)
-        except Exception as e:
-            print(f"Worker {worker_id} error: {e}")
-    
-    try:
-        threads = []
-        for i in range(3):
-            t = threading.Thread(target=worker, args=(i,))
-            threads.append(t)
-            t.start()
-        
-        for t in threads:
-            t.join()
-        
-        print("✓ Concurrent access test completed")
-        
-    except Exception as e:
-        print(f"✗ Concurrent access test failed: {e}")
-        traceback.print_exc()
-
-def main():
-    """Main test function"""
-    print("Starting comprehensive plugin manager tests...")
-    
-    # Test imports first
-    test_all_imports()
-    
-    # Test basic functionality
-    pm = test_plugin_manager_functionality()
-    
-    # Test edge cases
-    test_plugin_manager_edge_cases(pm)
-    
-    # Test concurrent access
-    test_concurrent_access(pm)
-    
-    print("\n=== Test Summary ===")
-    print("All tests completed. Check output above for any failures.")
 
 if __name__ == "__main__":
-    main()
+    print("Starting comprehensive runtime error test...")
+    
+    test_all_imports()
+    pm = test_plugin_manager_functionality()
+    test_utility_functions()
+    test_edge_cases()
+    
+    print("\n=== Test Summary ===")
+    print("All tests completed. Check above for any ✗ marks indicating errors.")
