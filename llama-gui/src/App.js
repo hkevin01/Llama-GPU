@@ -1,8 +1,9 @@
+import { Box } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 // Components
 import LoadingSpinner from './components/Common/LoadingSpinner';
@@ -19,76 +20,129 @@ import QuantizationSettings from './components/Pages/QuantizationSettings';
 import Settings from './components/Pages/Settings';
 
 // Context
-import { AppProvider } from './context/AppContext';
-import { WebSocketProvider } from './context/WebSocketContext';
+import { AppProvider, useAppContext } from './context/AppContext';
 
-// Create theme
-const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#3b82f6',
-      light: '#60a5fa',
-      dark: '#2563eb',
+// App Layout component that uses context
+function AppLayout() {
+  const { state } = useAppContext();
+  const { ui } = state;
+
+  // Create dynamic theme based on context
+  const theme = createTheme({
+    palette: {
+      mode: ui.theme,
+      primary: {
+        main: ui.theme === 'dark' ? '#90caf9' : '#3b82f6',
+        light: ui.theme === 'dark' ? '#bbdefb' : '#60a5fa',
+        dark: ui.theme === 'dark' ? '#64b5f6' : '#2563eb',
+      },
+      secondary: {
+        main: ui.theme === 'dark' ? '#f48fb1' : '#8b5cf6',
+        light: ui.theme === 'dark' ? '#f8bbd9' : '#a78bfa',
+        dark: ui.theme === 'dark' ? '#f06292' : '#7c3aed',
+      },
+      background: {
+        default: ui.theme === 'dark' ? '#121212' : '#f8fafc',
+        paper: ui.theme === 'dark' ? '#1e1e1e' : '#ffffff',
+      },
+      text: {
+        primary: ui.theme === 'dark' ? '#ffffff' : '#1e293b',
+        secondary: ui.theme === 'dark' ? '#b3b3b3' : '#64748b',
+      },
     },
-    secondary: {
-      main: '#8b5cf6',
-      light: '#a78bfa',
-      dark: '#7c3aed',
+    typography: {
+      fontFamily: 'Inter, sans-serif',
+      h4: {
+        fontWeight: 600,
+      },
+      h5: {
+        fontWeight: 600,
+      },
+      h6: {
+        fontWeight: 600,
+      },
     },
-    background: {
-      default: '#f8fafc',
-      paper: '#ffffff',
-    },
-    text: {
-      primary: '#1e293b',
-      secondary: '#64748b',
-    },
-  },
-  typography: {
-    fontFamily: 'Inter, sans-serif',
-    h4: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          borderRadius: '8px',
-          fontWeight: 500,
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            borderRadius: '8px',
+            fontWeight: 500,
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderRadius: '12px',
+            boxShadow: ui.theme === 'dark'
+              ? '0 1px 3px 0 rgba(255, 255, 255, 0.1), 0 1px 2px 0 rgba(255, 255, 255, 0.06)'
+              : '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            borderRadius: '12px',
+          },
+        },
+      },
+      MuiDrawer: {
+        styleOverrides: {
+          paper: {
+            borderRight: 'none',
+          },
         },
       },
     },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: '12px',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: '12px',
-        },
-      },
-    },
-  },
-});
+  });
+
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ display: 'flex', height: '100vh' }}>
+        <Header />
+        <Sidebar />
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            mt: '64px', // Header height
+            ml: ui.sidebarCollapsed ? '60px' : '280px',
+            transition: 'margin-left 0.3s ease',
+            p: 3,
+            overflow: 'auto',
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{ height: '100%' }}
+          >
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/models" element={<ModelManager />} />
+              <Route path="/inference" element={<InferenceCenter />} />
+              <Route path="/multi-gpu" element={<MultiGPUConfig />} />
+              <Route path="/quantization" element={<QuantizationSettings />} />
+              <Route path="/performance" element={<PerformanceMonitor />} />
+              <Route path="/api-server" element={<APIServer />} />
+              <Route path="/settings" element={<Settings />} />
+            </Routes>
+          </motion.div>
+        </Box>
+        <NotificationSystem />
+      </Box>
+    </ThemeProvider>
+  );
+}
 
 function App() {
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     // Simulate initialization
@@ -99,74 +153,16 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
   if (loading) {
     return <LoadingSpinner message="Initializing Llama-GPU Interface..." />;
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AppProvider>
-        <WebSocketProvider>
-          <Router>
-            <div className="flex h-screen bg-gray-50">
-              <AnimatePresence>
-                {sidebarOpen && (
-                  <motion.div
-                    initial={{ x: -300 }}
-                    animate={{ x: 0 }}
-                    exit={{ x: -300 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    className="flex-shrink-0"
-                  >
-                    <Sidebar onClose={() => setSidebarOpen(false)} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="flex-1 flex flex-col overflow-hidden">
-                <Header
-                  onToggleSidebar={toggleSidebar}
-                  onToggleDarkMode={toggleDarkMode}
-                  sidebarOpen={sidebarOpen}
-                  darkMode={darkMode}
-                />
-
-                <main className="flex-1 overflow-auto">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="h-full"
-                  >
-                    <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/models" element={<ModelManager />} />
-                      <Route path="/inference" element={<InferenceCenter />} />
-                      <Route path="/multi-gpu" element={<MultiGPUConfig />} />
-                      <Route path="/quantization" element={<QuantizationSettings />} />
-                      <Route path="/performance" element={<PerformanceMonitor />} />
-                      <Route path="/api-server" element={<APIServer />} />
-                      <Route path="/settings" element={<Settings />} />
-                    </Routes>
-                  </motion.div>
-                </main>
-              </div>
-
-              <NotificationSystem />
-            </div>
-          </Router>
-        </WebSocketProvider>
-      </AppProvider>
-    </ThemeProvider>
+    <AppProvider>
+      <Router>
+        <AppLayout />
+      </Router>
+    </AppProvider>
   );
 }
 
