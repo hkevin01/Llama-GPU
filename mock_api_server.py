@@ -6,16 +6,33 @@ Provides WebSocket and HTTP streaming endpoints for testing the real-time chat
 
 import asyncio
 import json
+import logging
+import os
+import sys
 import time
+import traceback
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("mock_api.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+logger.info("Creating FastAPI application...")
 app = FastAPI(title="LLaMA-GPU Mock API", version="1.0.0")
 
 # Add CORS middleware
+logger.info("Configuring CORS middleware...")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,13 +41,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+def health_check():
+    """Health check endpoint for the mock API server"""
+    logger.info("Processing health check request")
+    return {"status": "ok", "server": "mock", "timestamp": time.time()}
+
 
 class MockLLaMA:
     """Mock LLaMA model for testing streaming responses"""
 
     def __init__(self):
         self.responses = {
-            "python": """Python is a versatile programming language that's great for beginners and experts alike.
+            "python": """Python is a versatile programming language
+                great for beginners and experts alike.
 
 Here are some key features:
 - Easy to read syntax
@@ -57,7 +81,8 @@ Functions can also have:
 - Return multiple values
 - Documentation strings""",
 
-            "default": """I'm a LLaMA model running on GPU acceleration! I can help you with:
+            "default": """I'm a LLaMA GPU accelerated model!
+                I can help you with:
 
 • Programming questions (Python, JavaScript, etc.)
 • Code explanations and debugging
@@ -67,7 +92,9 @@ Functions can also have:
 What would you like to learn about today?"""
         }
 
-    async def generate_response(self, message: str) -> AsyncGenerator[str, None]:
+    async def generate_response(
+        self, message: str
+    ) -> AsyncGenerator[str, None]:
         """Generate a mock response token by token"""
         try:
             # Lower case message for simple keyword matching
@@ -79,7 +106,7 @@ What would you like to learn about today?"""
             elif "function" in message:
                 response = self.responses["function"]
             else:
-                response = self.default_response
+                response = self.responses["default"]
 
             # Stream the response token by token
             words = response.split()
@@ -90,14 +117,12 @@ What would you like to learn about today?"""
                 # Stream each word
                 yield word
                 # Add newline if it was in the original response
-                if "
-" in response.split(word, 1)[1][:2]:
-                    yield "
-"
+                if "\n" in response.split(word, 1)[1][:2]:
+                    yield "\n"
                 # Simulate thinking
                 await asyncio.sleep(0.1)
 
-        except Exception as e:
+        except (KeyError, ValueError, TypeError) as e:
             print(f"Error generating response: {e}")
             yield "I apologize, but I encountered an error. Please try again."
 
@@ -138,7 +163,8 @@ async def websocket_endpoint(websocket: WebSocket):
                         await websocket.send_text(json.dumps({
                             "type": "metrics",
                             "metrics": {
-                                "gpu_usage": 65 + (time.time() % 30),  # Simulate GPU usage
+                                # Simulate GPU usage between 65-95%
+                                "gpu_usage": 65 + (time.time() % 30),
                                 "tokens_per_sec": 15.2
                             }
                         }))
@@ -216,17 +242,6 @@ async def gpu_status():
         "temperature": 72
     }
 
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "timestamp": time.time(),
-        "version": "1.0.0"
-    }
-
-
 @app.get("/")
 async def root():
     """Root endpoint with API information"""
@@ -244,18 +259,23 @@ async def root():
 
 
 if __name__ == "__main__":
+    import socket
+    import sys
+    from contextlib import closing
+
     import uvicorn
 
-    print("🚀 Starting LLaMA-GPU Mock API Server...")
-    print("📡 WebSocket: ws://localhost:8000/v1/stream")
-    print("🌐 HTTP API: http://localhost:8000/v1/chat/completions")
-    print("💻 GPU Status: http://localhost:8000/v1/monitor/gpu-status")
-    print("🔍 API Docs: http://localhost:8000/docs")
+    try:
+        def find_free_port():
+            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+                s.bind(('', 0))
+                s.listen(1)
+                port = s.getsockname()[1]
+                return port
 
-    uvicorn.run(
-        "mock_api_server:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
+        port = find_free_port()
+        print(f"🚀 Starting on port {port}...")
+        uvicorn.run(app, host="0.0.0.0", port=port)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)

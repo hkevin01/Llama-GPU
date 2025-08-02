@@ -5,6 +5,7 @@ import IconButton from '@mui/material/IconButton';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import React, { useEffect, useRef, useState } from 'react';
+import { getCurrentConfig } from '../../../config/llm-config';
 import { ACTIONS, useChatContext } from './ChatContext';
 import {
     ChatContainer,
@@ -21,10 +22,10 @@ import {
     TypingDots,
     TypingIndicator,
 } from './ChatStyles';
-import type {
-    CustomDispatch,
-    Message,
-} from './types';
+// These types are used only in type annotations
+/* eslint-disable no-unused-vars */
+import type { CustomDispatch, Message } from './types';
+/* eslint-enable no-unused-vars */
 
 // Component implementation begins here
 
@@ -127,11 +128,12 @@ function ChatInterface() {
   // Make HTTP request to chat endpoint
   const makeHttpRequest = async (message: string) => {
     try {
-      const response = await fetch('http://localhost:8000/v1/chat/completions', {
+      const config = getCurrentConfig();
+      const response = await fetch(config.url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: config.headers,
         body: JSON.stringify({
-          model: 'llama-base',
+          model: config.model,
           messages: [{ role: 'user', content: message }],
           stream: true,
           max_tokens: 500,
