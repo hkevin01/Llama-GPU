@@ -1,0 +1,248 @@
+#!/usr/bin/env python3
+"""
+Mock API Server for LLaMA-GPU Chat Interface Testing
+Provides WebSocket and HTTP streaming endpoints for testing the real-time chat
+"""
+
+import asyncio
+import json
+import time
+from typing import AsyncGenerator
+
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+
+app = FastAPI(title="LLaMA-GPU Mock API", version="1.0.0")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+class MockLLaMA:
+    """Mock LLaMA model for testing streaming responses"""
+
+    def __init__(self):
+        self.responses = {
+            "python": """Python is a versatile programming language that's great for beginners and experts alike.
+
+Here are some key features:
+- Easy to read syntax
+- Large standard library
+- Great for web development, data science, and AI
+- Cross-platform compatibility
+
+Would you like to learn about specific Python topics?""",
+
+            "function": """Here's how to create a function in Python:
+
+```python
+def greet(name):
+    return f"Hello, {name}!"
+
+# Call the function
+message = greet("World")
+print(message)  # Output: Hello, World!
+```
+
+Functions can also have:
+- Multiple parameters
+- Default values
+- Return multiple values
+- Documentation strings""",
+
+            "default": """I'm a LLaMA model running on GPU acceleration! I can help you with:
+
+• Programming questions (Python, JavaScript, etc.)
+• Code explanations and debugging
+• Best practices and algorithms
+• Data science and AI concepts
+
+What would you like to learn about today?"""
+        }
+
+    async def generate_response(self, message: str) -> AsyncGenerator[str, None]:
+        """Generate streaming response for a given message"""
+        # Determine response based on keywords
+        response_text = self.responses["default"]
+
+        if "python" in message.lower():
+            response_text = self.responses["python"]
+        elif "function" in message.lower():
+            response_text = self.responses["function"]
+
+        # Stream response word by word
+        words = response_text.split()
+        for i, word in enumerate(words):
+            if i == 0:
+                yield word
+            else:
+                yield f" {word}"
+
+            # Simulate realistic typing speed
+            await asyncio.sleep(0.1)
+
+
+# Initialize mock model
+mock_llama = MockLLaMA()
+
+
+@app.websocket("/v1/stream")
+async def websocket_endpoint(websocket: WebSocket):
+    """WebSocket endpoint for real-time chat streaming"""
+    await websocket.accept()
+
+    try:
+        while True:
+            # Receive message from client
+            data = await websocket.receive_text()
+            message_data = json.loads(data)
+
+            if message_data.get("type") == "chat":
+                user_message = message_data.get("message", "")
+
+                # Send acknowledgment
+                await websocket.send_text(json.dumps({
+                    "type": "start",
+                    "message": "Starting response generation..."
+                }))
+
+                # Stream response
+                async for token in mock_llama.generate_response(user_message):
+                    await websocket.send_text(json.dumps({
+                        "type": "token",
+                        "content": token
+                    }))
+
+                    # Send metrics periodically
+                    if len(token.strip()) > 0:
+                        await websocket.send_text(json.dumps({
+                            "type": "metrics",
+                            "metrics": {
+                                "gpu_usage": 65 + (time.time() % 30),  # Simulate GPU usage
+                                "tokens_per_sec": 15.2
+                            }
+                        }))
+
+                # Send completion signal
+                await websocket.send_text(json.dumps({
+                    "type": "complete"
+                }))
+
+    except WebSocketDisconnect:
+        print("WebSocket client disconnected")
+
+
+@app.post("/v1/chat/completions")
+async def chat_completions(request_data: dict):
+    """HTTP streaming endpoint compatible with OpenAI API"""
+
+    async def generate_sse():
+        """Generate Server-Sent Events for streaming"""
+        messages = request_data.get("messages", [])
+        if messages:
+            user_message = messages[-1].get("content", "")
+
+            # Stream response
+            async for token in mock_llama.generate_response(user_message):
+                chunk = {
+                    "id": f"chatcmpl-{int(time.time())}",
+                    "object": "chat.completion.chunk",
+                    "created": int(time.time()),
+                    "model": "llama-base",
+                    "choices": [{
+                        "index": 0,
+                        "delta": {"content": token},
+                        "finish_reason": None
+                    }]
+                }
+
+                yield f"data: {json.dumps(chunk)}\n\n"
+
+            # Send completion
+            final_chunk = {
+                "id": f"chatcmpl-{int(time.time())}",
+                "object": "chat.completion.chunk",
+                "created": int(time.time()),
+                "model": "llama-base",
+                "choices": [{
+                    "index": 0,
+                    "delta": {},
+                    "finish_reason": "stop"
+                }]
+            }
+
+            yield f"data: {json.dumps(final_chunk)}\n\n"
+            yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        generate_sse(),
+        media_type="text/plain",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        }
+    )
+
+
+@app.get("/v1/monitor/gpu-status")
+async def gpu_status():
+    """Get current GPU status"""
+    return {
+        "gpu_available": True,
+        "gpu_name": "AMD Radeon RX 7900 XT",
+        "memory_used": 8.2,
+        "memory_total": 24.0,
+        "utilization": 65,
+        "temperature": 72
+    }
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "timestamp": time.time(),
+        "version": "1.0.0"
+    }
+
+
+@app.get("/")
+async def root():
+    """Root endpoint with API information"""
+    return {
+        "name": "LLaMA-GPU Mock API",
+        "version": "1.0.0",
+        "endpoints": {
+            "websocket": "/v1/stream",
+            "chat": "/v1/chat/completions",
+            "gpu_status": "/v1/monitor/gpu-status",
+            "health": "/health"
+        },
+        "description": "Mock API server for testing LLaMA-GPU chat interface"
+    }
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    print("🚀 Starting LLaMA-GPU Mock API Server...")
+    print("📡 WebSocket: ws://localhost:8000/v1/stream")
+    print("🌐 HTTP API: http://localhost:8000/v1/chat/completions")
+    print("💻 GPU Status: http://localhost:8000/v1/monitor/gpu-status")
+    print("🔍 API Docs: http://localhost:8000/docs")
+
+    uvicorn.run(
+        "mock_api_server:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        log_level="info"
+    )
