@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
+import { detectGPUs } from '../utils/gpuDetection';
 
 const AppContext = createContext();
 
@@ -15,13 +16,13 @@ const initialState = {
   // System info
   systemInfo: {
     gpus: [
-      { name: 'NVIDIA RTX 4090', memoryTotal: 24576, memoryUsed: 2048 },
-      { name: 'NVIDIA RTX 4080', memoryTotal: 16384, memoryUsed: 1024 },
+      { name: 'AMD Radeon RX 7900 XTX', memoryTotal: 24576, memoryUsed: 2048 },
+      { name: 'AMD Radeon RX 7800 XT', memoryTotal: 16384, memoryUsed: 1024 },
     ],
     cpuUsage: 25,
     memoryUsage: 45,
     apiServerStatus: 'disconnected',
-    backendType: 'CUDA',
+    backendType: 'ROCm',
     awsDetected: false,
   },
 
@@ -157,7 +158,7 @@ const initialState = {
       {
         id: 2,
         title: 'GPU Detected',
-        message: '2 CUDA-compatible GPUs found',
+        message: '2 ROCm-compatible AMD GPUs found',
         type: 'info',
         timestamp: '10:30:16',
         read: false,
@@ -630,6 +631,48 @@ function appReducer(state, action) {
 // Provider component
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
+
+  // Load GPU information on startup
+  useEffect(() => {
+    const loadGPUInfo = async () => {
+      try {
+        const gpuData = await detectGPUs();
+        dispatch({
+          type: actionTypes.SET_SYSTEM_INFO,
+          payload: {
+            gpus: gpuData.gpus,
+            backendType: gpuData.backendType,
+          },
+        });
+
+        // Add notification about detected GPUs
+        if (gpuData.gpus.length > 0) {
+          dispatch({
+            type: actionTypes.ADD_NOTIFICATION,
+            payload: {
+              title: 'GPU Detected',
+              message: `${gpuData.gpus.length} ${gpuData.backendType}-compatible GPU${gpuData.gpus.length > 1 ? 's' : ''} found`,
+              type: 'success',
+              timestamp: new Date().toLocaleTimeString(),
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load GPU information:', error);
+        dispatch({
+          type: actionTypes.ADD_NOTIFICATION,
+          payload: {
+            title: 'GPU Detection Failed',
+            message: 'Could not detect GPU information',
+            type: 'warning',
+            timestamp: new Date().toLocaleTimeString(),
+          },
+        });
+      }
+    };
+
+    loadGPUInfo();
+  }, []);
 
   // Simulate system info updates
   useEffect(() => {

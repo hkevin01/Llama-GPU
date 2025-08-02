@@ -22,26 +22,29 @@ import {
     Toolbar,
     Typography,
 } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 
 const drawerWidth = 280;
 
 const menuItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: Dashboard, color: '#1976d2' },
-  { id: 'model-manager', label: 'Model Manager', icon: SmartToy, color: '#388e3c' },
-  { id: 'inference-center', label: 'Inference Center', icon: Psychology, color: '#f57c00' },
-  { id: 'multi-gpu', label: 'Multi-GPU Config', icon: Memory, color: '#7b1fa2' },
-  { id: 'quantization', label: 'Quantization', icon: Tune, color: '#c2185b' },
-  { id: 'performance', label: 'Performance Monitor', icon: Speed, color: '#d32f2f' },
-  { id: 'api-server', label: 'API Server', icon: Api, color: '#0288d1' },
-  { id: 'settings', label: 'Settings', icon: Settings, color: '#455a64' },
+  { id: 'dashboard', label: 'Dashboard', icon: Dashboard, color: '#1976d2', path: '/dashboard' },
+  { id: 'models', label: 'Model Manager', icon: SmartToy, color: '#388e3c', path: '/models' },
+  { id: 'inference', label: 'Inference Center', icon: Psychology, color: '#f57c00', path: '/inference' },
+  { id: 'multi-gpu', label: 'Multi-GPU Config', icon: Memory, color: '#7b1fa2', path: '/multi-gpu' },
+  { id: 'quantization', label: 'Quantization', icon: Tune, color: '#c2185b', path: '/quantization' },
+  { id: 'performance', label: 'Performance Monitor', icon: Speed, color: '#d32f2f', path: '/performance' },
+  { id: 'api-server', label: 'API Server', icon: Api, color: '#0288d1', path: '/api-server' },
+  { id: 'settings', label: 'Settings', icon: Settings, color: '#455a64', path: '/settings' },
 ];
 
 function Sidebar() {
-  const { state, dispatch } = useAppContext();
+  const { state } = useAppContext();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handlePageChange = (pageId) => {
-    dispatch({ type: 'SET_ACTIVE_PAGE', payload: pageId });
+  const handlePageChange = (path) => {
+    navigate(path);
   };
 
   const getMemoryUsageColor = (usage) => {
@@ -49,6 +52,9 @@ function Sidebar() {
     if (usage > 60) return 'warning';
     return 'success';
   };
+
+  // Get current page based on location
+  const currentPath = location.pathname;
 
   return (
     <Drawer
@@ -96,7 +102,7 @@ function Sidebar() {
             <Chip
               label={`${state.systemInfo.backendType}${state.systemInfo.awsDetected ? ' (AWS)' : ''}`}
               size="small"
-              color={state.systemInfo.backendType === 'CUDA' ? 'primary' : 'default'}
+              color={state.systemInfo.backendType === 'ROCm' ? 'primary' : 'default'}
               sx={{ width: '100%', mt: 0.5 }}
             />
           </Box>
@@ -137,8 +143,8 @@ function Sidebar() {
           {menuItems.map((item) => (
             <ListItem key={item.id} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
-                selected={state.ui.activePage === item.id}
-                onClick={() => handlePageChange(item.id)}
+                selected={currentPath === item.path}
+                onClick={() => handlePageChange(item.path)}
                 sx={{
                   borderRadius: 2,
                   '&.Mui-selected': {
@@ -164,7 +170,7 @@ function Sidebar() {
                   primary={item.label}
                   primaryTypographyProps={{
                     fontSize: '0.9rem',
-                    fontWeight: state.ui.activePage === item.id ? 600 : 400,
+                    fontWeight: currentPath === item.path ? 600 : 400,
                   }}
                 />
               </ListItemButton>

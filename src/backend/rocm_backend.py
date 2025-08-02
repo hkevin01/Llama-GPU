@@ -1,15 +1,20 @@
-from typing import Iterator, List, Optional
+"""ROCm backend for LLaMA model inference using PyTorch with AMD GPUs."""
+
+import logging
+from typing import Any, Dict, Iterator, List, Optional
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from .base import Backend
 
+logger = logging.getLogger(__name__)
 
 class ROCMBackend(Backend):
-    """ROCm backend for LLaMA model inference using PyTorch with AMD GPU acceleration."""
+    """ROCm backend implementation."""
+
     def __init__(self) -> None:
-        """Initialize ROCm backend with empty model and tokenizer."""
+        """Initialize ROCm backend."""
         super().__init__()
 
     def load_model(
@@ -18,10 +23,10 @@ class ROCMBackend(Backend):
         quant_type: Optional[str] = None
     ) -> None:
         """
-        Load the LLaMA model and tokenizer for ROCm (AMD GPU) inference, optionally quantized.
+        Load the model and tokenizer for ROCm inference.
 
         Args:
-            model_path: Path to the LLaMA model
+            model_path: Path to the model
             quant_type: Optional quantization type ('int8', 'float16', etc.)
         """
         self._load_model_and_tokenizer(
@@ -48,7 +53,7 @@ class ROCMBackend(Backend):
         input_data: str,
         max_tokens: Optional[int] = None
     ) -> Iterator[str]:
-        """Perform streaming inference using ROCm GPU, yielding tokens as they're generated."""
+        """Stream inference using ROCm GPU."""
         return self._stream_infer(input_data, max_tokens, device='cuda')
 
     def is_available(self) -> bool:
@@ -57,3 +62,24 @@ class ROCMBackend(Backend):
             return torch.version.hip is not None and torch.cuda.is_available()
         except AttributeError:
             return False
+
+    def get_gpu_info(self) -> Dict[str, Any]:
+        """Get information about available AMD GPUs."""
+        if not self.is_available():
+            return {}
+
+        gpu_info = {}
+        try:
+            for i in range(torch.cuda.device_count()):
+                props = torch.cuda.get_device_properties(i)
+                gpu_info[f'rocm:{i}'] = {
+                    'name': props.name,
+                    'total_memory': props.total_memory // 1024 ** 2,
+                    'major': props.major,
+                    'minor': props.minor
+                }
+        except (RuntimeError, AttributeError) as e:
+            logger.error("Error getting GPU info: %s", e)
+            return {}
+
+        return gpu_info

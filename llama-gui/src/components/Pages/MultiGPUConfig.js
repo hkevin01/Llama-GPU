@@ -112,7 +112,7 @@ function MultiGPUConfig() {
 
       {state.systemInfo.gpus.length === 0 && (
         <Alert severity="warning" sx={{ mb: 3 }}>
-          No GPUs detected. Multi-GPU features require CUDA-compatible GPUs.
+          No GPUs detected. Multi-GPU features require ROCm or CUDA-compatible GPUs.
         </Alert>
       )}
 
