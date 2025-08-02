@@ -2,7 +2,6 @@ import SendIcon from '@mui/icons-material/Send';
 import StopIcon from '@mui/icons-material/Stop';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
-import { Theme } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import React, { useEffect, useRef, useState } from 'react';
@@ -22,83 +21,26 @@ import {
     TypingDots,
     TypingIndicator,
 } from './ChatStyles';
+import type {
+    CustomDispatch,
+    Message,
+} from './types';
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
-}
-
-interface GPUStatusType {
-  available: boolean;
-  name: string;
-  memoryUsed: number;
-  memoryTotal: number;
-}
-
-interface ChatState {
-  messages: Message[];
-  currentStream: {
-    content: string;
-    startTime: number;
-    tokenCount: number;
-  };
-  isConnected: boolean;
-  isTyping: boolean;
-  metrics: {
-    gpuUsage: number;
-    responseTime: number;
-  };
-  gpuStatus: GPUStatusType;
-}
-
-type CustomDispatch = (action: {
-  type: string;
-  payload?: any;
-}) => void;
-
-interface StatusIndicatorProps {
-  connected: boolean;
-  theme?: Theme;
-}
-
-interface GPUStatusProps {
-  status: 'available' | 'unavailable';
-  elevation: number;
-  children: React.ReactNode;
-}
-
-interface TypingDotProps {
-  index: number;
-}
-
-declare module '@mui/material/styles' {
-  interface Components {
-    StatusIndicator: {
-      defaultProps?: Partial<StatusIndicatorProps>;
-      styleOverrides?: {
-        root?: React.CSSProperties;
-      };
-    };
-    GPUStatus: {
-      defaultProps?: Partial<GPUStatusProps>;
-      styleOverrides?: {
-        root?: React.CSSProperties;
-      };
-    };
-    TypingDot: {
-      defaultProps?: Partial<TypingDotProps>;
-      styleOverrides?: {
-        root?: React.CSSProperties;
-      };
-    };
-  }
-}
+// Component implementation begins here
 
 function ChatInterface() {
   const { state, dispatch } = useChatContext();
   const [input, setInput] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Reset error when input changes
+  useEffect(() => {
+    if (error) {
+      setError(null);
+    }
+  }, [input]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Scroll to bottom when messages update
   const scrollToBottom = () => {
@@ -167,38 +109,49 @@ function ChatInterface() {
     }
   };
 
-  // Make HTTP request to chat endpoint
-  const makeHttpRequest = async (message: string) => {
-    const response = await fetch('/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'llama-base',
-        messages: [{ role: 'user', content: message }],
-        stream: true,
-        max_tokens: 500,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return response;
-  };
-
   // Handle error during chat request
   const handleError = (dispatch: CustomDispatch, error: Error) => {
     console.error('Chat request failed:', error);
+    setError(`Error: ${error.message}. Make sure the mock API server is running on port 8000.`);
     dispatch({
       type: ACTIONS.ADD_MESSAGE,
       payload: {
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: 'Sorry, I encountered an error. Please make sure the API server is running.',
         timestamp: new Date().toISOString(),
       },
     });
     dispatch({ type: ACTIONS.SET_TYPING, payload: false });
+  };
+
+  // Make HTTP request to chat endpoint
+  const makeHttpRequest = async (message: string) => {
+    try {
+      const response = await fetch('http://localhost:8000/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama-base',
+          messages: [{ role: 'user', content: message }],
+          stream: true,
+          max_tokens: 500,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return response;
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          throw new Error('Could not connect to the API server. Please make sure it is running.');
+        }
+        throw error;
+      }
+      throw new Error('An unknown error occurred');
+    }
   };
 
   // Handle message submission
@@ -331,6 +284,9 @@ function ChatInterface() {
             multiline
             maxRows={4}
             disabled={state.isTyping}
+            error={!!error}
+            helperText={error || ''}
+            inputRef={inputRef}
           />
           <IconButton
             color="primary"

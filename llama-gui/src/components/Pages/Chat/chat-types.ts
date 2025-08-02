@@ -1,14 +1,12 @@
 import { Theme } from '@mui/material/styles';
 import React from 'react';
 
-// Chat Message Types
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
 }
 
-// GPU Status Types
 export interface GPUStatusType {
   available: boolean;
   name: string;
@@ -16,7 +14,6 @@ export interface GPUStatusType {
   memoryTotal: number;
 }
 
-// Chat State Types
 export interface ChatState {
   messages: Message[];
   currentStream: {
@@ -33,48 +30,27 @@ export interface ChatState {
   gpuStatus: GPUStatusType;
 }
 
-// Action Types
 export type CustomDispatch = (action: {
   type: string;
   payload?: any;
 }) => void;
 
-// UI Component Props
-export interface StatusIndicatorProps {
-  connected: boolean;
-  theme?: Theme;
-}
-
-export interface GPUStatusProps {
-  status: 'available' | 'unavailable';
-  elevation: number;
-  children: React.ReactNode;
-}
-
-export interface MessageProps {
-  role: 'user' | 'assistant';
-}
-
-export interface TypingDotProps {
-  index: number;
-}
-
 declare module '@mui/material/styles' {
   interface Components {
     StatusIndicator: {
-      defaultProps?: Partial<StatusIndicatorProps>;
+      defaultProps?: Partial<import('./types').StatusIndicatorProps>;
       styleOverrides?: {
         root?: React.CSSProperties;
       };
     };
     GPUStatus: {
-      defaultProps?: Partial<GPUStatusProps>;
+      defaultProps?: Partial<import('./types').GPUStatusProps>;
       styleOverrides?: {
         root?: React.CSSProperties;
       };
     };
     TypingDot: {
-      defaultProps?: Partial<TypingDotProps>;
+      defaultProps?: Partial<import('./types').TypingDotProps>;
       styleOverrides?: {
         root?: React.CSSProperties;
       };

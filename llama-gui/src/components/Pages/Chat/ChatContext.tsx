@@ -1,33 +1,5 @@
 import React, { createContext, ReactNode, useContext, useReducer } from 'react';
-
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
-}
-
-interface GPUStatus {
-  available: boolean;
-  name: string;
-  memoryUsed: number;
-  memoryTotal: number;
-}
-
-interface ChatState {
-  messages: Message[];
-  currentStream: {
-    content: string;
-    startTime: number;
-    tokenCount: number;
-  };
-  isConnected: boolean;
-  isTyping: boolean;
-  metrics: {
-    gpuUsage: number;
-    responseTime: number;
-  };
-  gpuStatus: GPUStatus;
-}
+import { ChatState } from './chat-types';
 
 interface Action {
   type: string;

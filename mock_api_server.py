@@ -68,25 +68,38 @@ What would you like to learn about today?"""
         }
 
     async def generate_response(self, message: str) -> AsyncGenerator[str, None]:
-        """Generate streaming response for a given message"""
-        # Determine response based on keywords
-        response_text = self.responses["default"]
+        """Generate a mock response token by token"""
+        try:
+            # Lower case message for simple keyword matching
+            message = message.lower()
 
-        if "python" in message.lower():
-            response_text = self.responses["python"]
-        elif "function" in message.lower():
-            response_text = self.responses["function"]
-
-        # Stream response word by word
-        words = response_text.split()
-        for i, word in enumerate(words):
-            if i == 0:
-                yield word
+            # Choose response based on keywords
+            if "python" in message:
+                response = self.responses["python"]
+            elif "function" in message:
+                response = self.responses["function"]
             else:
-                yield f" {word}"
+                response = self.default_response
 
-            # Simulate realistic typing speed
-            await asyncio.sleep(0.1)
+            # Stream the response token by token
+            words = response.split()
+            for i, word in enumerate(words):
+                # Add space before all words except the first
+                if i > 0:
+                    yield " "
+                # Stream each word
+                yield word
+                # Add newline if it was in the original response
+                if "
+" in response.split(word, 1)[1][:2]:
+                    yield "
+"
+                # Simulate thinking
+                await asyncio.sleep(0.1)
+
+        except Exception as e:
+            print(f"Error generating response: {e}")
+            yield "I apologize, but I encountered an error. Please try again."
 
 
 # Initialize mock model
