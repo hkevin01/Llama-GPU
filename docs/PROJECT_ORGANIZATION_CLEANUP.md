@@ -29,7 +29,7 @@ Llama-GPU/
 
 ### Removed Empty/Redundant Files:
 - ❌ `comprehensive_test.py` (empty)
-- ❌ `cleanup_temp_files.py` (empty)  
+- ❌ `cleanup_temp_files.py` (empty)
 - ❌ `direct_test.py` (empty)
 - ❌ `final_runtime_test.py` (empty)
 - ❌ `quick_test.py` (empty)
@@ -100,7 +100,7 @@ Llama-GPU/
 
 The project now follows standard conventions:
 - ✅ Python source code in `src/`
-- ✅ Tests in `tests/` 
+- ✅ Tests in `tests/`
 - ✅ Documentation in `docs/`
 - ✅ Scripts in `scripts/`
 - ✅ Examples in `examples/`

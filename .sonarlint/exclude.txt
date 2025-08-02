@@ -1,0 +1,40 @@
+# SonarQube for IDE Configuration
+
+# Exclude common directories that cause performance issues
+**/node_modules/**
+**/dist/**
+**/build/**
+**/coverage/**
+**/target/**
+**/.git/**
+**/.vscode/**
+**/.copilot/**
+**/logs/**
+**/temp/**
+**/tmp/**
+**/*.min.js
+**/*.min.css
+**/_organized/**
+**/venv/**
+**/__pycache__/**
+**/*.pyc
+**/*.pyo
+
+# Exclude large generated files
+**/*.bundle.js
+**/*.chunk.js
+**/static/js/bundle.js
+
+# Exclude test and example directories that may have intentional issues
+**/tests/**
+**/examples/**
+
+# Exclude documentation files
+**/docs/**/*.md
+
+# Exclude configuration files
+**/*.json
+**/*.yaml
+**/*.yml
+**/*.toml
+**/*.ini
