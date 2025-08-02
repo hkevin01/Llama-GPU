@@ -46,11 +46,11 @@ function Header() {
   };
 
   const getServerStatusColor = () => {
-    switch (state.systemInfo.apiServerStatus) {
+    switch (state.systemInfo?.apiServerStatus) {
       case 'connected': return 'success';
       case 'connecting': return 'warning';
       case 'error': return 'error';
-      default: return 'default';
+      default: return 'info';
     }
   };
 
@@ -75,7 +75,7 @@ function Header() {
                 width: 12,
                 height: 12,
                 borderRadius: '50%',
-                backgroundColor: (theme) => theme.palette[getServerStatusColor()].main,
+                backgroundColor: (theme) => theme.palette?.[getServerStatusColor()]?.main || theme.palette.info.main,
                 animation: state.systemInfo.apiServerStatus === 'connecting' ? 'pulse 1.5s infinite' : 'none',
               }}
             />
