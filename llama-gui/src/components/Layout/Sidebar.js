@@ -1,5 +1,6 @@
 import {
     Api,
+    Chat,
     Dashboard,
     Memory,
     Psychology,
@@ -29,6 +30,7 @@ const drawerWidth = 280;
 
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Dashboard, color: '#1976d2', path: '/dashboard' },
+  { id: 'chat', label: 'Chat Interface', icon: Chat, color: '#00acc1', path: '/chat' },
   { id: 'models', label: 'Model Manager', icon: SmartToy, color: '#388e3c', path: '/models' },
   { id: 'inference', label: 'Inference Center', icon: Psychology, color: '#f57c00', path: '/inference' },
   { id: 'multi-gpu', label: 'Multi-GPU Config', icon: Memory, color: '#7b1fa2', path: '/multi-gpu' },

@@ -11,6 +11,7 @@ import NotificationSystem from './components/Common/NotificationSystem';
 import Header from './components/Layout/Header';
 import Sidebar from './components/Layout/Sidebar';
 import APIServer from './components/Pages/APIServer';
+import ChatInterface from './components/Pages/ChatInterface';
 import Dashboard from './components/Pages/Dashboard';
 import InferenceCenter from './components/Pages/InferenceCenter';
 import ModelManager from './components/Pages/ModelManager';
@@ -176,6 +177,7 @@ function AppLayout() {
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/chat" element={<ChatInterface />} />
               <Route path="/models" element={<ModelManager />} />
               <Route path="/inference" element={<InferenceCenter />} />
               <Route path="/multi-gpu" element={<MultiGPUConfig />} />
