@@ -8,11 +8,14 @@ import asyncio
 import json
 import logging
 import os
+import socket
 import sys
 import time
 import traceback
+from contextlib import closing
 from typing import AsyncGenerator
 
+import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -29,17 +32,25 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 logger.info("Creating FastAPI application...")
-app = FastAPI(title="LLaMA-GPU Mock API", version="1.0.0")
+def create_app():
+    """Create and configure the FastAPI application."""
+    app = FastAPI(title="LLaMA-GPU Mock API", version="1.0.0")
 
-# Add CORS middleware
-logger.info("Configuring CORS middleware...")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    # Add CORS middleware
+    logger.info("Configuring CORS middleware...")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    return app
+
+
+# Create the application instance
+app = create_app()
 
 @app.get("/health")
 def health_check():
@@ -135,8 +146,48 @@ mock_llama = MockLLaMA()
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time chat streaming"""
     await websocket.accept()
+    logger.info("New WebSocket connection established")
 
     try:
+        async for message in websocket.iter_text():
+            try:
+                # Parse the incoming message
+                data = json.loads(message)
+                user_message = data.get('message', '')
+
+                # Send initial response metadata
+                await websocket.send_json({
+                    "type": "start",
+                    "timestamp": time.time(),
+                    "model": "llama-mock"
+                })
+
+                # Stream the response
+                async for token in mock_llama.generate_response(user_message):
+                    await websocket.send_json({
+                        "type": "token",
+                        "content": token,
+                        "timestamp": time.time()
+                    })
+
+                # Send completion message
+                await websocket.send_json({
+                    "type": "end",
+                    "timestamp": time.time()
+                })
+
+            except json.JSONDecodeError:
+                logger.error("Invalid JSON received")
+                await websocket.send_json({
+                    "type": "error",
+                    "message": "Invalid message format"
+                })
+            except Exception as e:
+                logger.error(f"Error processing message: {e}")
+                await websocket.send_json({
+                    "type": "error",
+                    "message": str(e)
+                })
         while True:
             # Receive message from client
             data = await websocket.receive_text()
@@ -258,24 +309,36 @@ async def root():
     }
 
 
-if __name__ == "__main__":
-    import socket
-    import sys
-    from contextlib import closing
-
-    import uvicorn
-
-    try:
-        def find_free_port():
-            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-                s.bind(('', 0))
-                s.listen(1)
-                port = s.getsockname()[1]
+def find_free_port(start_port=8000, max_port=8020):
+    """Find a free port in range."""
+    for port in range(start_port, max_port + 1):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        with closing(sock):
+            try:
+                sock.bind(('127.0.0.1', port))
                 return port
+            except socket.error:
+                continue
+    return None
 
+
+if __name__ == "__main__":
+    try:
+        # Try to find an available port
         port = find_free_port()
-        print(f"🚀 Starting on port {port}...")
-        uvicorn.run(app, host="0.0.0.0", port=port)
+        if not port:
+            logger.error("No available ports found in range 8000-8020")
+            sys.exit(1)
+
+        logger.info(f"🚀 Starting on port {port}...")
+
+        uvicorn.run(
+            app,
+            host="127.0.0.1",
+            port=port,
+            log_level="debug",
+            access_log=True
+        )
     except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
+        logger.error(f"Error: {e}")
         sys.exit(1)

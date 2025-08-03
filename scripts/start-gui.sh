@@ -196,7 +196,7 @@ start_gui || { cleanup; exit 1; }
 
     # Start the React development server
     echo "🌟 Starting React development server on port $PORT..."
-    REACT_APP_API_PORT=$API_PORT PORT=$PORT npm start# Monitor both processes
+    REACT_APP_API_PORT=$API_PORT PORT=$PORT npm start  # Monitor both processes
 while kill -0 $API_PID 2>/dev/null && kill -0 $NPM_PID 2>/dev/null; do
     sleep 1
 done

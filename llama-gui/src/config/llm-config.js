@@ -12,6 +12,7 @@ export const LLM_CONFIG = {
     mock: {
       baseUrl: 'http://localhost:8000',
       endpoint: '/v1/chat/completions',
+      wsEndpoint: '/v1/stream',
       model: 'llama-base',
       headers: {
         'Content-Type': 'application/json'

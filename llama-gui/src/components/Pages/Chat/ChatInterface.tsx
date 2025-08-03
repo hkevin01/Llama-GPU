@@ -35,15 +35,44 @@ function ChatInterface() {
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    const ws = setupWebSocket();
+    wsRef.current = ws;
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    const ws = setupWebSocket();
+    wsRef.current = ws;
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset error when input changes
   useEffect(() => {
     if (error) {
       setError(null);
     }
-  }, [input]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [input, error]);
 
   // Scroll to bottom when messages update
+  useEffect(() => {
+    scrollToBottom();
+  }, [state.messages, state.currentStream.content]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -63,40 +92,110 @@ function ChatInterface() {
     return '0';
   };
 
-  // Process each line from the server response
-  const processLine = (line: string, dispatch: CustomDispatch) => {
-    if (!line.startsWith('data: ')) return;
+  // WebSocket setup
+  const setupWebSocket = () => {
+    const config = getCurrentConfig();
+    const wsUrl = `ws://${config.baseUrl.replace('http://', '')}${config.wsEndpoint}`;
+    const ws = new WebSocket(wsUrl);
 
-    const data = line.slice(6);
-    if (data === '[DONE]') {
-      dispatch({ type: ACTIONS.END_STREAM });
-      dispatch({ type: ACTIONS.SET_TYPING, payload: false });
-      return true;
-    }
+    ws.onopen = () => {
+      dispatch({ type: ACTIONS.SET_CONNECTION, payload: true });
+      console.log('WebSocket connected');
+    };
 
-    try {
-      const parsed = JSON.parse(data);
-      if (parsed.choices?.[0]?.delta?.content) {
-        dispatch({
-          type: ACTIONS.UPDATE_STREAM,
-          payload: parsed.choices[0].delta.content,
-        });
+    ws.onclose = () => {
+      dispatch({ type: ACTIONS.SET_CONNECTION, payload: false });
+      console.log('WebSocket disconnected');
+      setTimeout(setupWebSocket, 5000);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        switch (data.type) {
+          case 'token':
+            dispatch({
+              type: ACTIONS.UPDATE_STREAM,
+              payload: data.content,
+            });
+            break;
+          case 'end':
+            dispatch({ type: ACTIONS.END_STREAM });
+            dispatch({ type: ACTIONS.SET_TYPING, payload: false });
+            break;
+          case 'error':
+            setError(data.message);
+            break;
+          default:
+            console.warn('Unknown message type:', data.type);
+        }
+      } catch (e) {
+        console.warn('Failed to parse WebSocket message:', e);
       }
-    } catch (e) {
-      console.warn('Failed to parse stream chunk:', e);
-    }
-    return false;
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setError('Connection error. Retrying...');
+    };
+
+    return ws;
   };
 
-  // Process response from server
-  const processResponse = async (response: Response, dispatch: CustomDispatch) => {
-    const reader = response.body!.getReader();
-    const decoder = new TextDecoder();
-    let isDone = false;
+  // Connect to WebSocket and handle messages
+  const setupWebSocket = () => {
+    const config = getCurrentConfig();
+    const wsUrl = `ws://${config.baseUrl.replace('http://', '')}${config.wsEndpoint}`;
+    const ws = new WebSocket(wsUrl);
 
-    while (!isDone) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    ws.onopen = () => {
+      dispatch({ type: ACTIONS.SET_CONNECTION, payload: true });
+      console.log('WebSocket connected');
+    };
+
+    ws.onclose = () => {
+      dispatch({ type: ACTIONS.SET_CONNECTION, payload: false });
+      console.log('WebSocket disconnected');
+      // Try to reconnect after 5 seconds
+      setTimeout(setupWebSocket, 5000);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        switch (data.type) {
+          case 'token':
+            dispatch({
+              type: ACTIONS.UPDATE_STREAM,
+              payload: data.content,
+            });
+            break;
+
+          case 'end':
+            dispatch({ type: ACTIONS.END_STREAM });
+            dispatch({ type: ACTIONS.SET_TYPING, payload: false });
+            break;
+
+          case 'error':
+            setError(data.message);
+            break;
+
+          default:
+            console.warn('Unknown message type:', data.type);
+        }
+      } catch (e) {
+        console.warn('Failed to parse WebSocket message:', e);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setError('Connection error. Retrying...');
+    };
+
+    return ws;
+  };
 
       const chunk = decoder.decode(value);
       const lines = chunk.split('\n');
@@ -125,34 +224,35 @@ function ChatInterface() {
     dispatch({ type: ACTIONS.SET_TYPING, payload: false });
   };
 
-  // Make HTTP request to chat endpoint
-  const makeHttpRequest = async (message: string) => {
+  // Send message through WebSocket
+  const sendMessage = async (message: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      throw new Error('Not connected to the server');
+    }
+
     try {
-      const config = getCurrentConfig();
-      const response = await fetch(config.url, {
-        method: 'POST',
-        headers: config.headers,
-        body: JSON.stringify({
-          model: config.model,
-          messages: [{ role: 'user', content: message }],
-          stream: true,
-          max_tokens: 500,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return response;
+      wsRef.current.send(JSON.stringify({
+        message,
+        timestamp: new Date().toISOString()
+      }));
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes('Failed to fetch')) {
-          throw new Error('Could not connect to the API server. Please make sure it is running.');
-        }
-        throw error;
-      }
-      throw new Error('An unknown error occurred');
+      throw new Error('Failed to send message through WebSocket');
+    }
+  };
+
+  // Send message through WebSocket
+  const sendMessage = async (message: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      throw new Error('Not connected to the server');
+    }
+
+    try {
+      wsRef.current.send(JSON.stringify({
+        message,
+        timestamp: new Date().toISOString()
+      }));
+    } catch (error) {
+      throw new Error('Failed to send message through WebSocket');
     }
   };
 
