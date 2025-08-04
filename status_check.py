@@ -40,42 +40,58 @@ except Exception as e:
 # Check our ROCm backend
 print("\n🔧 Checking Llama-GPU backends...")
 try:
+    cmd = [
+        "python3",
+        "-c",
+        "from src.utils.amd.rocm_backend import (HAS_AMD_GPU, HAS_ROCM, "
+        "rocm_backend); "
+        "print('AMD GPU: ' + str(HAS_AMD_GPU)); "
+        "print('ROCm Available: ' + str(HAS_ROCM)); "
+        "print('Backend Ready: ' + str(rocm_backend.available))"
+    ]
     result = subprocess.run(
-        'source venv/bin/activate && python3 -c "from utils.rocm_backend import HAS_AMD_GPU, HAS_ROCM, rocm_backend; print(f\'AMD GPU: {HAS_AMD_GPU}\'); print(f\'ROCm Available: {HAS_ROCM}\'); print(f\'Backend Ready: {rocm_backend.available}\')"',
-        shell=True, capture_output=True, text=True, timeout=10
+        ["source", "venv/bin/activate", "&&"] + cmd,
+        shell=True,
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=True
     )
-    if result.returncode == 0:
-        print("✅ Backend status:")
-        for line in result.stdout.strip().split('\n'):
-            print(f"   {line}")
-    else:
-        print(f"⚠️ Backend check: {result.stderr}")
-except Exception as e:
-    print(f"⚠️ Could not check backend: {e}")
+    print("✅ Backend status:")
+    for line in result.stdout.strip().split('\n'):
+        print(f"   {line}")
+except subprocess.CalledProcessError as e:
+    print(f"⚠️ Backend check failed: {e.stderr}")
+except subprocess.TimeoutExpired:
+    print("⚠️ Backend check timed out")
+except OSError as e:
+    print(f"⚠️ Could not execute backend check: {e}")
 
 # Check WebSocket functionality
 print("\n🌐 Checking WebSocket server...")
 try:
     # Test if server is responding
     import requests
+    from requests.exceptions import RequestException
+
     response = requests.get('http://localhost:8001/health', timeout=3)
     if response.status_code == 200:
         data = response.json()
-        print(f"✅ Server running on port 8001")
+        print("✅ Server running on port 8001")
         print(f"   Server: {data.get('server', 'unknown')}")
         print(f"   Status: {data.get('status', 'unknown')}")
     else:
-        print(f"⚠️ Server responded with status {response.status_code}")
+        print("⚠️ Server responded with status {response.status_code}")
 except requests.exceptions.ConnectionError:
     print("⚠️ Server not running on port 8001")
-except Exception as e:
-    print(f"⚠️ Could not check server: {e}")
+except RequestException as e:
+    print(f"⚠️ Server check failed: {e}")
 
 print("\n📊 Summary:")
 print("✅ WebSocket connections working (from your logs)")
 print("✅ Chat interface communicating with server")
 print("💡 Next: Install ROCm PyTorch for GPU acceleration")
 
-print(f"\n🚀 To enable AMD GPU acceleration:")
-print(f"   chmod +x complete_amd_setup.sh")
-print(f"   ./complete_amd_setup.sh")
+print("\n🚀 To enable AMD GPU acceleration:")
+print("   chmod +x scripts/setup/complete_amd_setup.sh")
+print("   ./scripts/setup/complete_amd_setup.sh")

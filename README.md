@@ -1,4 +1,14 @@
-# 🦙 Llama-GPU
+# Llama-GPU
+
+GPU-accelerated implementation of the Llama model with ROCm support for AMD GPUs.
+
+## Features
+
+- AMD GPU acceleration with ROCm 6.3 support
+- WebSocket-based chat interface
+- Optimized model inference
+- Comprehensive GPU status monitoring
+- Easy setup and configuration
 
 [![Build Status](https://github.com/hkevin01/Llama-GPU/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hkevin01/Llama-GPU/actions)
 [![Test Coverage](https://codecov.io/gh/hkevin01/Llama-GPU/branch/main/graph/badge.svg)](https://codecov.io/gh/hkevin01/Llama-GPU)
