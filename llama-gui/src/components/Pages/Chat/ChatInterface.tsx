@@ -26,7 +26,18 @@ import {
     TypingDots,
     TypingIndicator,
 } from './ChatStyles';
-import type { Message } from './types'; // used in JSX message mapping
+import type { Message } from './types';
+
+// Type guard for Message type
+function isMessage(message: any): message is Message {
+  return (
+    typeof message === 'object' &&
+    message !== null &&
+    'role' in message &&
+    'content' in message &&
+    'timestamp' in message
+  );
+}
 
 function ChatInterface() {
   const { state, dispatch } = useChatContext();
@@ -65,6 +76,17 @@ function ChatInterface() {
         console.log('Received WebSocket message:', data);
 
         switch (data.type) {
+          case 'message':
+            if (isMessage(data)) {
+              const message: Message = {
+                role: data.role,
+                content: data.content,
+                timestamp: data.timestamp
+              };
+              dispatch({ type: ACTIONS.ADD_MESSAGE, payload: message });
+            }
+            break;
+
           case 'start':
             console.log('Starting new message stream');
             dispatch({ type: ACTIONS.SET_TYPING, payload: true });
@@ -121,14 +143,15 @@ function ChatInterface() {
     const message = input.trim();
     if (!message) return;
 
-    // Add user message
+    // Create and add user message
+    const userMessage: Message = {
+      role: 'user' as const,
+      content: message,
+      timestamp: new Date().toISOString(),
+    };
     dispatch({
       type: ACTIONS.ADD_MESSAGE,
-      payload: {
-        role: 'user',
-        content: message,
-        timestamp: new Date().toISOString(),
-      },
+      payload: userMessage,
     });
 
     // Reset input and prepare for stream
@@ -233,7 +256,7 @@ function ChatInterface() {
       </GPUStatus>
 
       <ChatMessages>
-        {state.messages.map((message: Message, index: number) => (
+        {(state.messages as Message[]).map((message, index) => (
           <MessageContainer
             key={message.timestamp || index}
             role={message.role}

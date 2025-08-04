@@ -5,9 +5,9 @@
   "main": "public/index.html",
   "homepage": ".",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject",
     "mock-server": "cd .. && /home/kevin/Projects/Llama-GPU/venv/bin/python -m uvicorn mock_api_server:app --reload --port 8000 --host 0.0.0.0",
     "electron": "electron .",
@@ -43,6 +43,7 @@
   "devDependencies": {
     "@babel/eslint-parser": "^7.22.0",
     "@babel/preset-react": "^7.22.0",
+    "@craco/craco": "^7.1.0",
     "@types/node": "^24.1.0",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
