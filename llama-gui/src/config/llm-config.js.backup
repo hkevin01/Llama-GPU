@@ -13,10 +13,10 @@ const getBackendUrl = () => {
 
   // For development, try localhost with common ports
   if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
-    return `http://localhost:8000`; // Default to 8000
+    return `http://localhost:8001`; // Default to 8000
   }
 
-  return `http://localhost:8000`;
+  return `http://localhost:8001`;
 };
 
 export const LLM_CONFIG = {

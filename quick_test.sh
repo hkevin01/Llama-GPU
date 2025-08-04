@@ -14,18 +14,29 @@ source venv/bin/activate
 echo "📦 Installing required dependencies..."
 pip install fastapi uvicorn websockets python-multipart requests > /dev/null 2>&1
 
-# Start the server in background
+# Start the server in background and capture the port
 cd /home/kevin/Projects/Llama-GPU
 echo "🚀 Starting test server..."
-python mock_api_server.py --port 8000 --host 0.0.0.0 &
+python mock_api_server.py --host 0.0.0.0 > server.log 2>&1 &
 SERVER_PID=$!
 
-# Wait for server to start
-sleep 3
+# Wait for server to start and extract port
+echo "⏳ Waiting for server to start..."
+sleep 5
 
-# Test the connection
+# Extract port from server log
+SERVER_PORT=$(grep -o "0.0.0.0:[0-9]*" server.log | head -1 | cut -d: -f2)
+if [ -z "$SERVER_PORT" ]; then
+    echo "❌ Could not determine server port"
+    kill $SERVER_PID 2>/dev/null
+    exit 1
+fi
+
+echo "✅ Server started on port $SERVER_PORT"
+
+# Test the connection with the correct port
 echo "🔍 Testing connection..."
-python test_connection.py
+python test_connection.py --port $SERVER_PORT
 
 # Cleanup
 echo "🧹 Cleaning up..."

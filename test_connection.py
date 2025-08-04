@@ -3,6 +3,7 @@
 Connection test utility for the Llama-GPU mock server
 """
 
+import argparse
 import asyncio
 import json
 import sys
@@ -73,32 +74,51 @@ async def test_websocket_connection(ws_url="ws://localhost:8000/v1/stream"):
 
 def main():
     """Run connection tests"""
+    parser = argparse.ArgumentParser(description='Test connection to mock API server')
+    parser.add_argument('--port', type=int, help='Specific port to test')
+    parser.add_argument('--host', default='localhost', help='Host to test')
+    args = parser.parse_args()
+
     print("🚀 Starting connection tests...")
 
-    # Test different ports
-    ports = [8000, 8001, 8002]
-    success = False
-
-    for port in ports:
-        print(f"\n--- Testing port {port} ---")
-        base_url = f"http://localhost:{port}"
-        ws_url = f"ws://localhost:{port}/v1/stream"
+    if args.port:
+        # Test specific port
+        print(f"\n--- Testing port {args.port} ---")
+        base_url = f"http://{args.host}:{args.port}"
+        ws_url = f"ws://{args.host}:{args.port}/v1/stream"
 
         if test_http_health(base_url):
             if asyncio.run(test_websocket_connection(ws_url)):
-                print(f"🎉 Success! Server is running on port {port}")
-                success = True
-                break
-        else:
-            print(f"❌ No server found on port {port}")
+                print(f"🎉 Success! Server is running on port {args.port}")
+                return
 
-    if not success:
-        print("\n💥 No working server found on any port!")
-        print("Make sure to start the server with:")
-        print("python mock_api_server.py --port 8000")
+        print(f"❌ No server found on port {args.port}")
         sys.exit(1)
     else:
-        print(f"\n🎉 All tests passed!")
+        # Test different ports
+        ports = [8000, 8001, 8002]
+        success = False
+
+        for port in ports:
+            print(f"\n--- Testing port {port} ---")
+            base_url = f"http://{args.host}:{port}"
+            ws_url = f"ws://{args.host}:{port}/v1/stream"
+
+            if test_http_health(base_url):
+                if asyncio.run(test_websocket_connection(ws_url)):
+                    print(f"🎉 Success! Server is running on port {port}")
+                    success = True
+                    break
+            else:
+                print(f"❌ No server found on port {port}")
+
+        if not success:
+            print("\n💥 No working server found on any port!")
+            print("Make sure to start the server with:")
+            print("python mock_api_server.py --port 8000")
+            sys.exit(1)
+        else:
+            print("\n🎉 All tests passed!")
 
 
 if __name__ == "__main__":
