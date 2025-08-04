@@ -20,6 +20,14 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+# Import CUDA processor
+try:
+    from utils.cuda_processor import cuda_processor
+    HAS_CUDA = True
+except ImportError:
+    HAS_CUDA = False
+    logger.warning("CUDA processor not available, running in CPU mode")
+
 # Configure logging
 logging.basicConfig(
     level=logging.DEBUG,
@@ -149,32 +157,51 @@ async def websocket_endpoint(websocket: WebSocket):
     logger.info("New WebSocket connection established")
 
     try:
-        async for message in websocket.iter_text():
+        while True:
             try:
-                # Parse the incoming message
-                data = json.loads(message)
-                user_message = data.get('message', '')
+                # Receive message from client
+                data = await websocket.receive_json()
+                message_type = data.get('type', '')
 
-                # Send initial response metadata
-                await websocket.send_json({
-                    "type": "start",
-                    "timestamp": time.time(),
-                    "model": "llama-mock"
-                })
+                if message_type == 'chat':
+                    user_message = data.get('message', '')
 
-                # Stream the response
-                async for token in mock_llama.generate_response(user_message):
+                    # Send initial response metadata
                     await websocket.send_json({
-                        "type": "token",
-                        "content": token,
-                        "timestamp": time.time()
+                        "type": "start",
+                        "timestamp": time.time(),
+                        "model": "llama-mock"
                     })
 
-                # Send completion message
-                await websocket.send_json({
-                    "type": "end",
-                    "timestamp": time.time()
-                })
+                    # Stream the response with metrics
+                    async for token in mock_llama.generate_response(user_message):
+                        await websocket.send_json({
+                            "type": "token",
+                            "content": token,
+                            "timestamp": time.time()
+                        })
+
+                        # Send metrics periodically
+                        await websocket.send_json({
+                            "type": "metrics",
+                            "metrics": {
+                                "gpuUsage": 65 + (time.time() % 30),
+                                "tokensPerSec": 15.2,
+                                "responseTime": int((time.time() % 3) * 1000)
+                            }
+                        })
+
+                    # Send completion message
+                    await websocket.send_json({
+                        "type": "end",
+                        "timestamp": time.time()
+                    })
+                elif message_type == 'stop':
+                    # Implement stop generation logic here
+                    await websocket.send_json({
+                        "type": "end",
+                        "timestamp": time.time()
+                    })
 
             except json.JSONDecodeError:
                 logger.error("Invalid JSON received")

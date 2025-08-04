@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useReducer } from 'react';
-import { ChatState } from './chat-types';
+import { ChatState, Message } from './chat-types';
 
 interface Action {
   type: string;
@@ -17,8 +17,21 @@ export const ACTIONS = {
   SET_CONNECTION: 'SET_CONNECTION',
 } as const;
 
+// Try to load persisted chat history from sessionStorage
+const loadPersistedState = () => {
+  try {
+    const savedState = sessionStorage.getItem('chatState');
+    if (savedState) {
+      return JSON.parse(savedState);
+    }
+  } catch (e) {
+    console.warn('Failed to load persisted chat state:', e);
+  }
+  return null;
+};
+
 const initialState: ChatState = {
-  messages: [],
+  messages: loadPersistedState()?.messages || [],
   currentStream: {
     content: '',
     startTime: 0,
@@ -38,13 +51,25 @@ const initialState: ChatState = {
   },
 };
 
+// Persist state changes to sessionStorage
+const persistState = (state: ChatState) => {
+  try {
+    sessionStorage.setItem('chatState', JSON.stringify(state));
+  } catch (e) {
+    console.warn('Failed to persist chat state:', e);
+  }
+};
+
 const reducer = (state: ChatState, action: Action): ChatState => {
   switch (action.type) {
-    case ACTIONS.ADD_MESSAGE:
-      return {
+    case ACTIONS.ADD_MESSAGE: {
+      const newState = {
         ...state,
         messages: [...state.messages, action.payload],
       };
+      persistState(newState);
+      return newState;
+    }
 
     case ACTIONS.UPDATE_STREAM: {
       const now = Date.now();
@@ -70,22 +95,22 @@ const reducer = (state: ChatState, action: Action): ChatState => {
 
     case ACTIONS.END_STREAM:
       if (state.currentStream.content) {
-        return {
+        const newMessage: Message = {
+          role: 'assistant',
+          content: state.currentStream.content,
+          timestamp: new Date().toISOString(),
+        };
+        const newState: ChatState = {
           ...state,
-          messages: [
-            ...state.messages,
-            {
-              role: 'assistant',
-              content: state.currentStream.content,
-              timestamp: new Date().toISOString(),
-            },
-          ],
+          messages: [...state.messages, newMessage],
           currentStream: {
             content: '',
             startTime: 0,
             tokenCount: 0,
           },
         };
+        persistState(newState);
+        return newState;
       }
       return state;
 

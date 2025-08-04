@@ -82,6 +82,24 @@ llama-gui/
 - `npm run electron-dev` - Run in development mode with hot reload
 - `npm run electron-pack` - Build and package for distribution
 
+## CUDA Optimization
+
+The application includes CUDA acceleration support using `cudf` and `numba`:
+
+- **Data Processing**: GPU-accelerated data processing using RAPIDS cuDF
+- **Memory Management**: Efficient GPU memory handling for large datasets
+- **Metrics Computation**: Real-time performance metrics calculation on GPU
+- **Text Processing**: CUDA-accelerated text processing for responses
+
+To enable CUDA optimization:
+
+1. Make sure you have CUDA toolkit installed
+2. Install CUDA dependencies:
+   ```bash
+   pip install cudf-cu11 numba
+   ```
+3. The system will automatically detect and use CUDA when available
+
 ## Configuration
 
 The application includes a comprehensive state management system that handles:

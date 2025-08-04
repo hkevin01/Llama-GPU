@@ -1,10 +1,14 @@
+import React, { useEffect, useRef, useState } from 'react';
+
+// Material UI imports
 import SendIcon from '@mui/icons-material/Send';
 import StopIcon from '@mui/icons-material/Stop';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import React, { useEffect, useRef, useState } from 'react';
+
+// Local imports
 import { getCurrentConfig } from '../../../config/llm-config';
 import { ACTIONS, useChatContext } from './ChatContext';
 import {
@@ -22,12 +26,7 @@ import {
     TypingDots,
     TypingIndicator,
 } from './ChatStyles';
-// These types are used only in type annotations
-/* eslint-disable no-unused-vars */
-import type { CustomDispatch, Message } from './types';
-/* eslint-enable no-unused-vars */
-
-// Component implementation begins here
+import type { Message } from './types'; // used in JSX message mapping
 
 function ChatInterface() {
   const { state, dispatch } = useChatContext();
@@ -36,64 +35,10 @@ function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimerRef = useRef<number | null>(null);
 
-  // Initialize WebSocket connection
-  useEffect(() => {
-    const ws = setupWebSocket();
-    wsRef.current = ws;
-
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close();
-      }
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Initialize WebSocket connection
-  useEffect(() => {
-    const ws = setupWebSocket();
-    wsRef.current = ws;
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close();
-      }
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Reset error when input changes
-  useEffect(() => {
-    if (error) {
-      setError(null);
-    }
-  }, [input, error]);
-
-  // Scroll to bottom when messages update
-  useEffect(() => {
-    scrollToBottom();
-  }, [state.messages, state.currentStream.content]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [state.messages, state.currentStream.content]);
-
-  // Calculate real-time metrics
-  const calculateMetrics = () => {
-    if (state.currentStream.startTime) {
-      const elapsed = (Date.now() - state.currentStream.startTime) / 1000;
-      return elapsed > 0
-        ? (state.currentStream.tokenCount / elapsed).toFixed(1)
-        : '0';
-    }
-    return '0';
-  };
-
-  // WebSocket setup
-  const setupWebSocket = () => {
+  // Setup WebSocket connection
+  const setupWebSocket = React.useCallback(() => {
     const config = getCurrentConfig();
     const wsUrl = `ws://${config.baseUrl.replace('http://', '')}${config.wsEndpoint}`;
     const ws = new WebSocket(wsUrl);
@@ -106,31 +51,59 @@ function ChatInterface() {
     ws.onclose = () => {
       dispatch({ type: ACTIONS.SET_CONNECTION, payload: false });
       console.log('WebSocket disconnected');
-      setTimeout(setupWebSocket, 5000);
+      if (reconnectTimerRef.current) {
+        window.clearTimeout(reconnectTimerRef.current);
+      }
+      reconnectTimerRef.current = window.setTimeout(() => {
+        wsRef.current = setupWebSocket();
+      }, 5000);
     };
 
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log('Received WebSocket message:', data);
+
         switch (data.type) {
-          case 'token':
-            dispatch({
-              type: ACTIONS.UPDATE_STREAM,
-              payload: data.content,
-            });
+          case 'start':
+            console.log('Starting new message stream');
+            dispatch({ type: ACTIONS.SET_TYPING, payload: true });
             break;
+
+          case 'token':
+            if (typeof data.content !== 'string') {
+              console.warn('Invalid token content:', data.content);
+              break;
+            }
+            dispatch({ type: ACTIONS.UPDATE_STREAM, payload: data.content });
+            break;
+
+          case 'metrics':
+            if (typeof data.metrics !== 'object') {
+              console.warn('Invalid metrics data:', data.metrics);
+              break;
+            }
+            dispatch({ type: ACTIONS.UPDATE_METRICS, payload: data.metrics });
+            break;
+
           case 'end':
+            console.log('Ending message stream');
             dispatch({ type: ACTIONS.END_STREAM });
             dispatch({ type: ACTIONS.SET_TYPING, payload: false });
             break;
+
           case 'error':
-            setError(data.message);
+            console.error('Server error:', data.message);
+            setError(data.message || 'Unknown server error');
+            dispatch({ type: ACTIONS.SET_TYPING, payload: false });
             break;
+
           default:
             console.warn('Unknown message type:', data.type);
         }
       } catch (e) {
-        console.warn('Failed to parse WebSocket message:', e);
+        console.error('Failed to parse WebSocket message:', e);
+        setError('Failed to process server response');
       }
     };
 
@@ -140,124 +113,10 @@ function ChatInterface() {
     };
 
     return ws;
-  };
-
-  // Connect to WebSocket and handle messages
-  const setupWebSocket = () => {
-    const config = getCurrentConfig();
-    const wsUrl = `ws://${config.baseUrl.replace('http://', '')}${config.wsEndpoint}`;
-    const ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-      dispatch({ type: ACTIONS.SET_CONNECTION, payload: true });
-      console.log('WebSocket connected');
-    };
-
-    ws.onclose = () => {
-      dispatch({ type: ACTIONS.SET_CONNECTION, payload: false });
-      console.log('WebSocket disconnected');
-      // Try to reconnect after 5 seconds
-      setTimeout(setupWebSocket, 5000);
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-
-        switch (data.type) {
-          case 'token':
-            dispatch({
-              type: ACTIONS.UPDATE_STREAM,
-              payload: data.content,
-            });
-            break;
-
-          case 'end':
-            dispatch({ type: ACTIONS.END_STREAM });
-            dispatch({ type: ACTIONS.SET_TYPING, payload: false });
-            break;
-
-          case 'error':
-            setError(data.message);
-            break;
-
-          default:
-            console.warn('Unknown message type:', data.type);
-        }
-      } catch (e) {
-        console.warn('Failed to parse WebSocket message:', e);
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      setError('Connection error. Retrying...');
-    };
-
-    return ws;
-  };
-
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
-
-      for (const line of lines) {
-        if (processLine(line, dispatch)) {
-          isDone = true;
-          break;
-        }
-      }
-    }
-  };
-
-  // Handle error during chat request
-  const handleError = (dispatch: CustomDispatch, error: Error) => {
-    console.error('Chat request failed:', error);
-    setError(`Error: ${error.message}. Make sure the mock API server is running on port 8000.`);
-    dispatch({
-      type: ACTIONS.ADD_MESSAGE,
-      payload: {
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please make sure the API server is running.',
-        timestamp: new Date().toISOString(),
-      },
-    });
-    dispatch({ type: ACTIONS.SET_TYPING, payload: false });
-  };
-
-  // Send message through WebSocket
-  const sendMessage = async (message: string) => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      throw new Error('Not connected to the server');
-    }
-
-    try {
-      wsRef.current.send(JSON.stringify({
-        message,
-        timestamp: new Date().toISOString()
-      }));
-    } catch (error) {
-      throw new Error('Failed to send message through WebSocket');
-    }
-  };
-
-  // Send message through WebSocket
-  const sendMessage = async (message: string) => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      throw new Error('Not connected to the server');
-    }
-
-    try {
-      wsRef.current.send(JSON.stringify({
-        message,
-        timestamp: new Date().toISOString()
-      }));
-    } catch (error) {
-      throw new Error('Failed to send message through WebSocket');
-    }
-  };
+  }, [dispatch, setError]);
 
   // Handle message submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = React.useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     const message = input.trim();
     if (!message) return;
@@ -278,18 +137,62 @@ function ChatInterface() {
     dispatch({ type: ACTIONS.SET_TYPING, payload: true });
 
     if (!state.isConnected) {
+      setError('Not connected to server');
+      return;
+    }
+
+    try {
+      // Send the message through WebSocket
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        throw new Error('WebSocket is not connected');
+      }
+
       try {
-        const response = await makeHttpRequest(message);
-        await processResponse(response, dispatch);
-      } catch (error) {
-        if (error instanceof Error) {
-          handleError(dispatch, error);
-        } else {
-          handleError(dispatch, new Error('Unknown error occurred'));
+        wsRef.current.send(JSON.stringify({
+          type: 'message',
+          content: message,
+          timestamp: new Date().toISOString()
+        }));
+      } catch (err) {
+        if (err instanceof Error) {
+          throw new Error(`Failed to send message through WebSocket: ${err.message}`);
         }
+        throw new Error('Failed to send message through WebSocket');
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('Unknown error occurred');
       }
     }
-  };
+  }, [input, state.isConnected, dispatch, setInput, setError]);
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    wsRef.current = setupWebSocket();
+
+    return () => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.close();
+      }
+      if (reconnectTimerRef.current) {
+        window.clearTimeout(reconnectTimerRef.current);
+      }
+    };
+  }, [setupWebSocket]);
+
+  // Scroll to bottom when messages update
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [state.messages, state.currentStream.content]);
+
+  // Reset error when input changes
+  useEffect(() => {
+    if (error) {
+      setError(null);
+    }
+  }, [input, error]);
 
   return (
     <ChatContainer>
@@ -300,7 +203,7 @@ function ChatInterface() {
           <Metric>
             <Typography variant="caption">Speed</Typography>
             <Typography variant="body2">
-              {calculateMetrics()} tok/s
+              {((state.metrics as any).tokensPerSecond || 0).toFixed(1)} tok/s
             </Typography>
           </Metric>
           <Metric>
@@ -401,8 +304,9 @@ function ChatInterface() {
             <IconButton
               color="error"
               onClick={() => {
-                // Implement stop generation
-                console.log('Stop generation');
+                if (wsRef.current?.readyState === WebSocket.OPEN) {
+                  wsRef.current.send(JSON.stringify({ type: 'stop' }));
+                }
               }}
             >
               <StopIcon />

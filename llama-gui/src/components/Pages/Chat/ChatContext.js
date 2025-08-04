@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useReducer } from 'react';
+import PropTypes from 'prop-types';
+import { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
 
 // Initial state
 const initialState = {
@@ -24,16 +25,18 @@ const initialState = {
 };
 
 // Action types
-export const ACTIONS = {
-  SET_CONNECTED: 'SET_CONNECTED',
+const ACTIONS = {
   ADD_MESSAGE: 'ADD_MESSAGE',
   UPDATE_STREAM: 'UPDATE_STREAM',
+  RESET_STREAM: 'RESET_STREAM',
   END_STREAM: 'END_STREAM',
   SET_TYPING: 'SET_TYPING',
   UPDATE_METRICS: 'UPDATE_METRICS',
   UPDATE_GPU_STATUS: 'UPDATE_GPU_STATUS',
-  RESET_STREAM: 'RESET_STREAM',
+  SET_CONNECTION: 'SET_CONNECTION'
 };
+
+export { ACTIONS };
 
 // Reducer function
 function chatReducer(state, action) {
@@ -100,6 +103,13 @@ function chatReducer(state, action) {
         },
       };
 
+    case ACTIONS.SET_CONNECTION:
+      return {
+        ...state,
+        isConnected: action.payload,
+        isTyping: action.payload ? state.isTyping : false,
+      };
+
     default:
       return state;
   }
@@ -112,7 +122,10 @@ const ChatContext = createContext();
 export function ChatProvider({ children }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
 
-  // Setup WebSocket connection
+  // PropTypes
+  ChatProvider.propTypes = {
+    children: PropTypes.node.isRequired
+  };
   useEffect(() => {
     let ws = null;
     let reconnectTimer = null;
@@ -205,7 +218,7 @@ export function ChatProvider({ children }) {
   }, []);
 
   return (
-    <ChatContext.Provider value={{ state, dispatch }}>
+    <ChatContext.Provider value={useMemo(() => ({ state, dispatch }), [state, dispatch])}>
       {children}
     </ChatContext.Provider>
   );
