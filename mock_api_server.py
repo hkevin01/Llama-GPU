@@ -1,9 +1,32 @@
 #!/usr/bin/env python3
 """
-Mock API Server for LLaMA-GPU Chat Interface Testing
+Mock API Server for LLaMA-GPU C    logger.warning(f"ROCm backend import failed: {e}")
+
+
+# Determine and log the backend being used
+if HAS_CUDA:
+    BACKEND = "cuda"
+elif HAS_ROCM:
+    BACKEND = "rocm"
+else:
+    BACKEND = "cpu"
+
+if not HAS_CUDA and not HAS_ROCM:
+    logger.warning("⚠️  No GPU acceleration available, running in CPU mode")
+    logger.info("For GPU acceleration:")
+    logger.info("  • NVIDIA: Install CUDA and run "
+                "'pip install cudf-cu11 numba'")
+    logger.info("  • AMD: Install ROCm and run 'pip install torch "
+               "--index-url https://download.pytorch.org/whl/rocm5.4.2'")
+
+logger.info("Creating FastAPI application...")
+
+
+def create_app():erface Testing
 Provides WebSocket and HTTP streaming endpoints for testing the real-time chat
 """
 
+import argparse
 import asyncio
 import json
 import logging
@@ -20,25 +43,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
-# Import GPU backends
-try:
-    from utils.cuda_processor import cuda_processor
-    HAS_CUDA = True
-except ImportError:
-    HAS_CUDA = False
-    logger.warning("CUDA processor not available")
-
-try:
-    from utils.rocm_backend import rocm_backend
-    HAS_ROCM = rocm_backend.available
-except ImportError:
-    HAS_ROCM = False
-    logger.warning("ROCm backend not available")
-
-if not HAS_CUDA and not HAS_ROCM:
-    logger.warning("No GPU acceleration available, running in CPU mode")
-
-# Configure logging
+# Configure logging first
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -49,7 +54,44 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Import GPU backends with improved error handling
+# For AMD/ROCm systems, check ROCm first
+try:
+    from utils.rocm_backend import HAS_AMD_GPU, HAS_ROCM, rocm_backend
+    if HAS_ROCM and rocm_backend.available:
+        logger.info("✅ ROCm backend available and initialized")
+    elif HAS_AMD_GPU:
+        logger.info("⚠️  AMD GPU detected but ROCm not properly configured")
+        logger.info("💡 This system appears to have AMD GPU hardware")
+        logger.info("🔧 Consider installing ROCm-enabled PyTorch for "
+                    "acceleration")
+    else:
+        logger.info("ℹ️  No AMD GPU detected - ROCm disabled")
+except ImportError as e:
+    HAS_ROCM = False
+    HAS_AMD_GPU = False
+    logger.warning(f"ROCm backend import failed: {e}")
+
+try:
+    from utils.cuda_processor import HAS_CUDA, HAS_NVIDIA_GPU, cuda_processor
+    if HAS_CUDA:
+        logger.info("✅ CUDA processor available and initialized")
+    elif HAS_NVIDIA_GPU:
+        logger.info("⚠️  NVIDIA GPU detected but CUDA not properly configured")
+    else:
+        logger.info("ℹ️  No NVIDIA GPU detected - CUDA disabled")
+except ImportError as e:
+    HAS_CUDA = False
+    HAS_NVIDIA_GPU = False
+    logger.warning(f"CUDA processor import failed: {e}")
+    logger.warning("ROCm backend not available")
+
+if not HAS_CUDA and not HAS_ROCM:
+    logger.warning("No GPU acceleration available, running in CPU mode")
+
 logger.info("Creating FastAPI application...")
+
+
 def create_app():
     """Create and configure the FastAPI application."""
     app = FastAPI(title="LLaMA-GPU Mock API", version="1.0.0")
@@ -163,20 +205,22 @@ mock_llama = MockLLaMA()
 @app.websocket("/v1/stream")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time chat streaming"""
-    await websocket.accept()
-    logger.info("New WebSocket connection established")
-
     try:
+        await websocket.accept()
+        logger.info("New WebSocket connection established")
+
         while True:
             try:
                 # Receive message from client
                 data = await websocket.receive_json()
                 message_type = data.get('type', '')
+                logger.info(f"Received message type: {message_type}")
 
-                if message_type == 'chat':
-                    user_message = data.get('message', '')
+                if message_type == 'message':
+                    user_message = data.get('content', '')
+                    logger.info(f"Processing message: {user_message[:50]}...")
 
-                    # Send initial response metadata
+                    # Send start signal
                     await websocket.send_json({
                         "type": "start",
                         "timestamp": time.time(),
@@ -184,86 +228,82 @@ async def websocket_endpoint(websocket: WebSocket):
                     })
 
                     # Stream the response with metrics
+                    token_count = 0
                     async for token in mock_llama.generate_response(user_message):
+                        # Check if connection is still open
+                        if websocket.client_state.DISCONNECTED:
+                            break
+
                         await websocket.send_json({
                             "type": "token",
                             "content": token,
                             "timestamp": time.time()
                         })
 
-                        # Send metrics periodically
-                        await websocket.send_json({
-                            "type": "metrics",
-                            "metrics": {
-                                "gpuUsage": 65 + (time.time() % 30),
-                                "tokensPerSec": 15.2,
-                                "responseTime": int((time.time() % 3) * 1000)
-                            }
-                        })
+                        token_count += 1
+
+                        # Send metrics every few tokens
+                        if token_count % 5 == 0:
+                            await websocket.send_json({
+                                "type": "metrics",
+                                "metrics": {
+                                    "gpuUsage": min(95, 45 + (time.time() % 50)),
+                                    "tokensPerSecond": 12.5 + (time.time() % 8),
+                                    "responseTime": int((time.time() % 2) * 1000 + 200)
+                                }
+                            })
 
                     # Send completion message
-                    await websocket.send_json({
-                        "type": "end",
-                        "timestamp": time.time()
-                    })
+                    if not websocket.client_state.DISCONNECTED:
+                        await websocket.send_json({
+                            "type": "end",
+                            "timestamp": time.time(),
+                            "totalTokens": token_count
+                        })
+
                 elif message_type == 'stop':
-                    # Implement stop generation logic here
+                    logger.info("Stop generation requested")
                     await websocket.send_json({
                         "type": "end",
-                        "timestamp": time.time()
+                        "timestamp": time.time(),
+                        "reason": "stopped"
                     })
 
-            except json.JSONDecodeError:
-                logger.error("Invalid JSON received")
-                await websocket.send_json({
-                    "type": "error",
-                    "message": "Invalid message format"
-                })
+                else:
+                    logger.warning(f"Unknown message type: {message_type}")
+                    await websocket.send_json({
+                        "type": "error",
+                        "message": f"Unknown message type: {message_type}"
+                    })
+
+            except json.JSONDecodeError as e:
+                logger.error(f"Invalid JSON received: {e}")
+                if not websocket.client_state.DISCONNECTED:
+                    await websocket.send_json({
+                        "type": "error",
+                        "message": "Invalid JSON format"
+                    })
+            except WebSocketDisconnect:
+                logger.info("Client disconnected normally")
+                break
             except Exception as e:
                 logger.error(f"Error processing message: {e}")
-                await websocket.send_json({
-                    "type": "error",
-                    "message": str(e)
-                })
-        while True:
-            # Receive message from client
-            data = await websocket.receive_text()
-            message_data = json.loads(data)
-
-            if message_data.get("type") == "chat":
-                user_message = message_data.get("message", "")
-
-                # Send acknowledgment
-                await websocket.send_text(json.dumps({
-                    "type": "start",
-                    "message": "Starting response generation..."
-                }))
-
-                # Stream response
-                async for token in mock_llama.generate_response(user_message):
-                    await websocket.send_text(json.dumps({
-                        "type": "token",
-                        "content": token
-                    }))
-
-                    # Send metrics periodically
-                    if len(token.strip()) > 0:
-                        await websocket.send_text(json.dumps({
-                            "type": "metrics",
-                            "metrics": {
-                                # Simulate GPU usage between 65-95%
-                                "gpu_usage": 65 + (time.time() % 30),
-                                "tokens_per_sec": 15.2
-                            }
-                        }))
-
-                # Send completion signal
-                await websocket.send_text(json.dumps({
-                    "type": "complete"
-                }))
+                if not websocket.client_state.DISCONNECTED:
+                    try:
+                        await websocket.send_json({
+                            "type": "error",
+                            "message": f"Server error: {str(e)}"
+                        })
+                    except Exception:
+                        # Connection is probably closed, break the loop
+                        break
 
     except WebSocketDisconnect:
-        print("WebSocket client disconnected")
+        logger.info("WebSocket connection closed by client")
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+    finally:
+        logger.info("WebSocket connection cleanup completed")
 
 
 @app.post("/v1/chat/completions")
@@ -360,20 +400,49 @@ def find_free_port(start_port=8000, max_port=8020):
 
 
 if __name__ == "__main__":
-    try:
-        # Try to find an available port
-        port = find_free_port()
-        if not port:
-            logger.error("No available ports found in range 8000-8020")
-            sys.exit(1)
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Mock API Server for LLaMA-GPU')
+    parser.add_argument('--host', default='127.0.0.1', help='Host to bind to')
+    parser.add_argument('--port', type=int, default=None, help='Port to bind to')
+    parser.add_argument('--backend', choices=['cuda', 'rocm', 'cpu'], default='auto',
+                       help='Backend to use (auto will detect available)')
+    args = parser.parse_args()
 
-        logger.info(f"🚀 Starting on port {port}...")
+    try:
+        # Determine port
+        if args.port:
+            port = args.port
+        else:
+            port = find_free_port()
+            if not port:
+                logger.error("No available ports found in range 8000-8020")
+                sys.exit(1)
+
+        # Log backend selection with AMD/ROCm priority
+        if args.backend == 'auto':
+            if HAS_ROCM and rocm_backend.available:
+                logger.info("🚀 Using ROCm backend (AMD GPU acceleration)")
+                BACKEND = "rocm"
+            elif HAS_CUDA:
+                logger.info("🚀 Using CUDA backend (NVIDIA GPU acceleration)")
+                BACKEND = "cuda"
+            else:
+                logger.info("🚀 Using CPU backend (no GPU acceleration)")
+                BACKEND = "cpu"
+                if HAS_AMD_GPU or HAS_NVIDIA_GPU:
+                    logger.info("💡 GPU hardware detected but not configured")
+                    logger.info("📖 Check troubleshooting in README.md")
+        else:
+            logger.info(f"🚀 Using {args.backend} backend (forced)")
+            BACKEND = args.backend
+
+        logger.info(f"🚀 Starting server on 0.0.0.0:{port}...")
 
         uvicorn.run(
             app,
-            host="127.0.0.1",
+            host=args.host,
             port=port,
-            log_level="debug",
+            log_level="info",
             access_log=True
         )
     except Exception as e:

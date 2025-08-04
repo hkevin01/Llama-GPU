@@ -5,8 +5,8 @@
   "main": "public/index.html",
   "homepage": ".",
   "scripts": {
-    "start": "./scripts/start.sh",
-    "start:dev": "craco start",
+    "start": "../scripts/start.sh",
+    "start:react": "craco start",
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject",

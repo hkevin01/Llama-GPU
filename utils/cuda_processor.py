@@ -1,25 +1,68 @@
 """CUDA-accelerated data processing module for LLaMA-GPU using cuDF."""
 
 import logging
+import subprocess
 from typing import Any, Dict
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+def check_nvidia_gpu():
+    """Check if NVIDIA GPU is available in hardware"""
+    try:
+        result = subprocess.run(['nvidia-smi'], capture_output=True,
+                                text=True, timeout=5)
+        return result.returncode == 0
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+
+
+def check_cuda_driver():
+    """Check if CUDA driver is properly installed"""
+    try:
+        result = subprocess.run(['nvidia-smi'], capture_output=True,
+                                text=True, timeout=5)
+        if result.returncode == 0:
+            # Check if CUDA is listed in nvidia-smi output
+            return 'CUDA' in result.stdout or 'Driver Version' in result.stdout
+        return False
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+
+
+# Check hardware and driver availability
+HAS_NVIDIA_GPU = check_nvidia_gpu()
+HAS_CUDA_DRIVER = check_cuda_driver()
+
 try:
-    import cudf
-    import numpy as np
-    from numba import cuda
-    HAS_CUDA = True
-    logger.info("CUDA acceleration enabled with cuDF")
-except ImportError:
+    if not HAS_NVIDIA_GPU:
+        logger.info("No NVIDIA GPU detected in hardware - running in CPU mode")
+        HAS_CUDA = False
+    elif not HAS_CUDA_DRIVER:
+        logger.warning("NVIDIA GPU detected but CUDA driver not properly "
+                       "installed")
+        HAS_CUDA = False
+    else:
+        import cudf
+        import numpy as np
+        from numba import cuda
+        HAS_CUDA = True
+        logger.info("CUDA acceleration enabled with cuDF")
+except ImportError as e:
     HAS_CUDA = False
-    logger.warning("CUDA packages not found. Running in CPU-only mode")
+    if HAS_NVIDIA_GPU:
+        logger.warning(f"NVIDIA GPU detected but CUDA packages not "
+                       f"installed: {e}")
+        logger.info("To enable CUDA acceleration, install: "
+                    "pip install cudf-cu11 numba")
+    else:
+        logger.info("CUDA packages not available - running in CPU mode")
 
 
 class CudaDataProcessor:
-    """Handle CUDA-accelerated data processing for chat responses and metrics."""
+    """Handle CUDA-accelerated data processing for chat responses."""
 
     def __init__(self):
         """Initialize the CUDA data processor"""
@@ -28,7 +71,8 @@ class CudaDataProcessor:
             # Initialize CUDA context
             try:
                 cuda.select_device(0)  # Use first available GPU
-                logger.info(f"Using CUDA device: {cuda.get_current_device().name}")
+                device_name = cuda.get_current_device().name
+                logger.info(f"Using CUDA device: {device_name}")
             except Exception as e:
                 logger.error(f"Failed to initialize CUDA device: {e}")
                 self.has_cuda = False
@@ -46,7 +90,8 @@ class CudaDataProcessor:
             if 'tokensPerSecond' in metrics:
                 # Use CUDA for calculating rolling statistics
                 df['tokensPerSecond'] = df['tokensPerSecond'].astype('float32')
-                df['smoothed_tps'] = df['tokensPerSecond'].rolling(window=5).mean()
+                window_mean = df['tokensPerSecond'].rolling(window=5).mean()
+                df['smoothed_tps'] = window_mean
 
             # Update GPU metrics
             if 'gpuUsage' in metrics:
@@ -80,7 +125,8 @@ class CudaDataProcessor:
 
             # Calculate grid and block sizes
             threads_per_block = 256
-            blocks_per_grid = (text_array.size + threads_per_block - 1) // threads_per_block
+            blocks_per_grid = ((text_array.size + threads_per_block - 1)
+                               // threads_per_block)
 
             # Process text
             process_text[blocks_per_grid, threads_per_block](d_array)
@@ -119,5 +165,6 @@ class CudaDataProcessor:
                 "memoryUsed": 0,
                 "memoryTotal": 0
             }
+
 
 cuda_processor = CudaDataProcessor()

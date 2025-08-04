@@ -19,26 +19,108 @@ A modern, responsive GUI application for managing GPU-accelerated LLaMA model in
 
 - Node.js 16 or later
 - npm or yarn package manager
-- CUDA-compatible GPU (for backend integration)
+- **For GPU acceleration:**
+  - **AMD GPU systems**: ROCm 5.4+ compatible GPU
+  - **NVIDIA GPU systems**: CUDA-compatible GPU
 
 ### Installation
 
-1. **Navigate to the GUI directory:**
+#### Option 1: Quick Setup for AMD/ROCm Systems
+
+If you have an AMD GPU and want ROCm acceleration:
+
+```bash
+cd /path/to/Llama-GPU
+chmod +x setup_amd_rocm.sh
+./setup_amd_rocm.sh
+```
+
+This script will:
+- Detect AMD hardware
+- Install ROCm-enabled PyTorch
+- Set up the Python environment
+- Test the ROCm configuration
+
+#### Option 2: Manual Installation
+
+1. **Navigate to the project root directory:**
+   ```bash
+   cd /path/to/Llama-GPU
+   ```
+
+2. **Create and activate Python virtual environment:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. **Install Python dependencies:**
+
+   **For AMD/ROCm systems:**
+   ```bash
+   # Install ROCm-enabled PyTorch first
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.4.2
+
+   # Then install other dependencies
+   pip install fastapi uvicorn websockets python-multipart requests
+   ```
+
+   **For NVIDIA/CUDA systems:**
+   ```bash
+   pip install fastapi uvicorn websockets python-multipart requests
+   # Optional CUDA acceleration:
+   pip install cudf-cu11 numba
+   ```
+
+   **For CPU-only systems:**
+   ```bash
+   pip install fastapi uvicorn websockets python-multipart requests
+   ```
+
+4. **Navigate to the GUI directory:**
    ```bash
    cd llama-gui
    ```
 
-2. **Install dependencies:**
+5. **Install Node.js dependencies:**
    ```bash
    npm install
    ```
 
-3. **Start the development server:**
+6. **Test the setup (optional but recommended):**
    ```bash
+   cd ..
+   chmod +x quick_test.sh
+   ./quick_test.sh
+   ```
+
+7. **Start the complete development environment:**
+   ```bash
+   cd llama-gui
    npm start
    ```
 
-   The application will open at `http://localhost:3000`
+   This will automatically:
+   - Start the Python API server on an available port
+   - Start the React development server
+   - Configure the connection between frontend and backend
+   - Open the application at the assigned port
+
+### Manual Server Management
+
+If you need to start services separately:
+
+1. **Start the API server only:**
+   ```bash
+   cd /path/to/Llama-GPU
+   python mock_api_server.py --port 8000 --host 0.0.0.0
+   ```
+
+2. **Start the frontend only:**
+   ```bash
+   cd llama-gui
+   npm run start:react
+   ```
 
 ### Running as Desktop App (Electron)
 
@@ -82,10 +164,11 @@ llama-gui/
 - `npm run electron-dev` - Run in development mode with hot reload
 - `npm run electron-pack` - Build and package for distribution
 
-## CUDA Optimization
+## GPU Optimization
 
-The application includes CUDA acceleration support using `cudf` and `numba`:
+The application includes GPU acceleration support for both NVIDIA CUDA and AMD ROCm:
 
+### CUDA Support (NVIDIA GPUs)
 - **Data Processing**: GPU-accelerated data processing using RAPIDS cuDF
 - **Memory Management**: Efficient GPU memory handling for large datasets
 - **Metrics Computation**: Real-time performance metrics calculation on GPU
@@ -98,7 +181,21 @@ To enable CUDA optimization:
    ```bash
    pip install cudf-cu11 numba
    ```
-3. The system will automatically detect and use CUDA when available
+
+### ROCm Support (AMD GPUs)
+- **Data Processing**: GPU-accelerated inference using ROCm backend
+- **Memory Management**: Optimized memory allocation for AMD GPUs
+- **Performance Monitoring**: Real-time ROCm metrics and statistics
+
+To enable ROCm optimization:
+
+1. Make sure you have ROCm toolkit installed
+2. Install ROCm dependencies:
+   ```bash
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.4.2
+   ```
+
+3. The system will automatically detect and use available GPU acceleration
 
 ## Configuration
 
@@ -174,12 +271,111 @@ function MyComponent() {
 
 ## Troubleshooting
 
+### Chat Interface Issues
+
+#### "Offline" Status or Connection Problems
+
+1. **Check if the API server is running:**
+   ```bash
+   # Test the API server directly
+   curl http://localhost:8000/health
+   ```
+
+2. **Run the connection test utility:**
+   ```bash
+   cd /path/to/Llama-GPU
+   python test_connection.py
+   ```
+
+3. **Verify WebSocket connection:**
+   - Open browser developer tools (F12)
+   - Check the Console tab for WebSocket errors
+   - Look for connection refused or timeout errors
+   - Verify the WebSocket URL is correct: `ws://localhost:8000/v1/stream`
+
+4. **Port conflicts:**
+   ```bash
+   # Check what's using the ports
+   netstat -tlnp | grep :8000
+   netstat -tlnp | grep :3001
+   ```
+
+5. **Start services manually for debugging:**
+   ```bash
+   # Terminal 1: Start API server with logging
+   cd /path/to/Llama-GPU
+   python mock_api_server.py --port 8000 --host 0.0.0.0
+
+   # Terminal 2: Start frontend
+   cd llama-gui
+   npm run start:react
+   ```
+
+6. **Quick test the entire setup:**
+   ```bash
+   chmod +x quick_test.sh
+   ./quick_test.sh
+   ```
+
+#### GPU Backend Issues
+
+1. **AMD/ROCm Issues (Most Common):**
+
+   **ROCm not detected:**
+   - Verify ROCm installation: `rocm-smi`
+   - Check for AMD hardware: `lspci | grep -i amd`
+   - Install ROCm if missing: See [AMD ROCm Installation Guide](https://docs.amd.com/bundle/ROCm-Installation-Guide-v5.4.2)
+
+   **PyTorch lacks ROCm support:**
+   ```bash
+   # Quick fix - run the setup script
+   chmod +x setup_amd_rocm.sh
+   ./setup_amd_rocm.sh
+
+   # Or manually install ROCm PyTorch
+   pip uninstall torch torchvision torchaudio
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.4.2
+   ```
+
+   **GPU not visible to PyTorch:**
+   ```bash
+   # Set GPU visibility
+   export HIP_VISIBLE_DEVICES=0
+
+   # Test PyTorch ROCm
+   python -c "import torch; print(f'ROCm: {torch.version.hip}'); print(f'GPU: {torch.cuda.is_available()}')"
+   ```
+
+2. **NVIDIA/CUDA Issues:**
+
+   **CUDA not detected:**
+   - Verify CUDA installation: `nvidia-smi`
+   - Check CUDA version compatibility
+   - Install cuDF: `pip install cudf-cu11 numba`
+
 ### Common Issues
 
-1. **Port Already in Use**: Change the port in package.json or stop conflicting processes
-2. **Dependency Errors**: Run `npm install` or delete `node_modules` and reinstall
-3. **Electron Issues**: Ensure compatible versions of Node.js and Electron
-4. **Theme Not Loading**: Check Material-UI theme provider configuration
+1. **Missing Python Dependencies:**
+   ```bash
+   # Run the setup script to install all dependencies
+   chmod +x setup.sh
+   ./setup.sh
+   ```
+
+2. **"ModuleNotFoundError" for uvicorn, websockets, etc.:**
+   ```bash
+   # Make sure virtual environment is activated
+   source venv/bin/activate
+   pip install fastapi uvicorn websockets python-multipart requests
+   ```
+
+3. **Port Already in Use**: Change the port in package.json or stop conflicting processes
+
+4. **Dependency Errors**: Run `npm install` or delete `node_modules` and reinstall
+
+5. **Electron Issues**: Ensure compatible versions of Node.js and Electron
+
+6. **Theme Not Loading**: Check Material-UI theme provider configuration
 
 ### Development Tips
 

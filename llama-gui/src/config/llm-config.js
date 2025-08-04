@@ -1,6 +1,24 @@
 // LLM Backend Configuration
 // Change these settings to connect to different LLM providers
 
+// Get backend URL from environment or use default
+const getBackendUrl = () => {
+  // Check for environment variable first
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+
+  // Try to detect the backend URL dynamically
+  const currentHost = window.location.hostname;
+
+  // For development, try localhost with common ports
+  if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+    return `http://localhost:8000`; // Default to 8000
+  }
+
+  return `http://localhost:8000`;
+};
+
 export const LLM_CONFIG = {
   // Current backend - change this to switch providers
   // Options: 'mock', 'local-api', 'openai', 'ollama'
@@ -10,7 +28,7 @@ export const LLM_CONFIG = {
   providers: {
     // Mock server for testing (starts with npm run mock-server)
     mock: {
-      baseUrl: 'http://localhost:8000',
+      baseUrl: getBackendUrl(),
       endpoint: '/v1/chat/completions',
       wsEndpoint: '/v1/stream',
       model: 'llama-base',
@@ -21,8 +39,9 @@ export const LLM_CONFIG = {
 
     // Local LLaMA-GPU API server
     'local-api': {
-      baseUrl: 'http://localhost:8001',
+      baseUrl: getBackendUrl(),
       endpoint: '/v1/chat/completions',
+      wsEndpoint: '/v1/stream',
       model: 'llama-7b',
       headers: {
         'Content-Type': 'application/json',
@@ -43,7 +62,7 @@ export const LLM_CONFIG = {
 
     // Ollama local server (install Ollama and run: ollama serve)
     ollama: {
-      baseUrl: 'http://localhost:11434',
+      baseUrl: 'http://localhost:8001',
       endpoint: '/v1/chat/completions',
       model: 'llama2',
       headers: {
