@@ -20,13 +20,23 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
-# Import CUDA processor
+# Import GPU backends
 try:
     from utils.cuda_processor import cuda_processor
     HAS_CUDA = True
 except ImportError:
     HAS_CUDA = False
-    logger.warning("CUDA processor not available, running in CPU mode")
+    logger.warning("CUDA processor not available")
+
+try:
+    from utils.rocm_backend import rocm_backend
+    HAS_ROCM = rocm_backend.available
+except ImportError:
+    HAS_ROCM = False
+    logger.warning("ROCm backend not available")
+
+if not HAS_CUDA and not HAS_ROCM:
+    logger.warning("No GPU acceleration available, running in CPU mode")
 
 # Configure logging
 logging.basicConfig(

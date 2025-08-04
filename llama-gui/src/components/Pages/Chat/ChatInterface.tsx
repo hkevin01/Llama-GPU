@@ -145,7 +145,7 @@ function ChatInterface() {
 
     // Create and add user message
     const userMessage: Message = {
-      role: 'user' as const,
+      role: 'user',
       content: message,
       timestamp: new Date().toISOString(),
     };

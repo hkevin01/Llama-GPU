@@ -5,11 +5,12 @@
   "main": "public/index.html",
   "homepage": ".",
   "scripts": {
-    "start": "craco start",
+    "start": "./scripts/start.sh",
+    "start:dev": "craco start",
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
-    "mock-server": "cd .. && /home/kevin/Projects/Llama-GPU/venv/bin/python -m uvicorn mock_api_server:app --reload --port 8000 --host 0.0.0.0",
+    "mock-server": "cd .. && python3 -m uvicorn mock_api_server:app --reload --port 8000 --host 0.0.0.0",
     "electron": "electron .",
     "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:${PORT:-3001} && electron .\"",
     "dist": "npm run build && electron-builder"
