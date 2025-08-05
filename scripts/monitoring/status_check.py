@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""Comprehensive system status check and diagnostics for Llama-GPU"""
 
 import asyncio
 import json
@@ -9,24 +9,12 @@ import subprocess
 import sys
 import time
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, MutableMapping, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
-# Handle virtual environment
-venv_path = Path(__file__).resolve().parent.parent.parent / 'venv'
-if sys.prefix == sys.base_prefix:  # Not in a virtual environment
-    venv_python = venv_path / 'bin' / 'python'
-    if venv_python.exists():
-        os.execv(str(venv_python), [str(venv_python)] + sys.argv)
-    else:
-        print("Virtual environment not found. Please run:")
-        print("python3 -m venv venv")
-        sys.exit(1)
-
+from src.core.logging_config import setup_logging
 from src.core.api_client import APIClient
 from src.core.debug_manager import DebugManager
 from src.core.exceptions import APIUnavailableError
-from src.core.logging_config import setup_logging
 
 # Constants
 PYTORCH_TIMEOUT = 10
@@ -38,15 +26,12 @@ REPORT_PATH = "logs/diagnostic_report.json"
 logger = setup_logging(service_name="status-check")
 debug_mgr = DebugManager()
 
-# Type aliases for better clarity
-ResultDict = MutableMapping[str, Any]
 
-
-def check_pytorch() -> Tuple[Optional[Dict[str, Any]], str]:
+def check_pytorch() -> Tuple[Optional[Dict], str]:
     """Check PyTorch installation and configuration.
 
     Returns:
-        Tuple[Optional[Dict[str, Any]], str]: PyTorch info and status message
+        Tuple[Optional[Dict], str]: PyTorch info and status message
     """
     debug_mgr.start_request(
         f"{CHECK_ID}-pytorch",
@@ -228,17 +213,17 @@ def save_report(results: Dict) -> None:
             print(f"  • {rec}")
 
 
-async def run_diagnostics() -> ResultDict:
+async def run_diagnostics() -> Dict:
     """Run comprehensive system diagnostics.
 
     Returns:
-        ResultDict: Complete diagnostic results
+        Dict: Complete diagnostic results
     """
     logger.info("🔍 Starting Llama-GPU System Diagnostics")
     logger.info("=" * 50)
 
     debug_mgr.start_request(CHECK_ID, "full-diagnostics")
-    results: ResultDict = {
+    results = {
         "system_info": get_system_info(),
         "checks": {},
         "metrics": {},
@@ -322,8 +307,7 @@ async def run_diagnostics() -> ResultDict:
 
         # Save diagnostic report
         os.makedirs("logs", exist_ok=True)
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, save_report, results)
+        await asyncio.to_thread(save_report, results)
         logger.info(f"Diagnostic report saved to {REPORT_PATH}")
 
         # Success
@@ -334,7 +318,11 @@ async def run_diagnostics() -> ResultDict:
         msg = f"Diagnostic check failed: {str(e)}"
         logger.error(msg)
         debug_mgr.track_error("diagnostic-error", msg)
-        return results
+        debug_mgr.end_request(CHECK_ID, "error")
+        return {
+            "error": msg,
+            "partial_results": results
+        }
 
 
 if __name__ == "__main__":
