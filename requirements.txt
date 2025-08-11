@@ -20,6 +20,8 @@ fastapi>=0.116.0
 uvicorn>=0.35.0
 httpx>=0.28.0
 websockets>=15.0.0
+starlette>=0.38.0
+python-dotenv>=1.0.1
 
 # CUDA acceleration
 cudf-cu11>=21.10.0  # For CUDA 11.x

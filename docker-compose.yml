@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - ALLOWED_ORIGINS=http://localhost:3000
+    ports:
+      - '8000:8000'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ['gpu']
+              driver: nvidia
+              count: 0
+
+  gui:
+    build:
+      context: ./llama-gui
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3000
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_API_BASE=http://localhost:8000
+      - REACT_APP_WS_URL=ws://localhost:8000/v1/stream
+    ports:
+      - '3000:3000'
+    depends_on:
+      - api

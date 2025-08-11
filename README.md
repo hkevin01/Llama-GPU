@@ -86,22 +86,27 @@ Llama-GPU/
 ### Installation
 
 1. **Clone and setup**:
-   ```bash
-   git clone https://github.com/yourusername/Llama-GPU.git
+
+  ```bash
+  git clone https://github.com/hkevin01/Llama-GPU.git
+  cd Llama-GPU
+  ```
 
 2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+
+  ```bash
+  pip install -r requirements.txt
+  ```
 
 3. **Choose your backend setup**:
-   ```bash
-   # For local development with CPU/CUDA
-   ./scripts/setup_local.sh
 
-   # For AWS GPU instances
-   ./scripts/setup_aws.sh
-   ```
+  ```bash
+  # For local development with CPU/CUDA
+  ./scripts/setup_local.sh
+
+  # For AWS GPU instances
+  ./scripts/setup_aws.sh
+  ```
 
 ### Basic Usage
 
@@ -157,10 +162,10 @@ Start the FastAPI server with monitoring:
 
 ```bash
 # Start API server
-python src/api_server.py --host 0.0.0.0 --port 8000
+./scripts/start_api.sh
 
 # Start React dashboard (in another terminal)
-python scripts/run_gui_dashboard.py
+(cd llama-gui && npm run start:react)
 ```
 
 **OpenAI-Compatible API Usage:**
@@ -247,14 +252,14 @@ docker run --gpus all -p 8000:8000 -p 3000:3000 llama-gpu
 docker run -p 8000:8000 -p 3000:3000 llama-gpu
 ```
 
-### Docker Compose (Production)
+### Docker Compose (Dev)
 
 ```bash
-# Start full stack (API + Dashboard + Monitoring)
-docker-compose up -d
+# Start full stack (API + Dashboard)
+docker compose up --build
 
-# Scale API instances
-docker-compose up --scale api=3
+# Stop
+docker compose down
 ```
 
 ---
