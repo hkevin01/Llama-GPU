@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""High port test utility - moved from root directory."""
+"""Network diagnostics utility - moved from root directory."""
 
 # This file was empty in the original location
 # Add implementation as needed

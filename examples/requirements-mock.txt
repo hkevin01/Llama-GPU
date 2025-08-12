@@ -1,0 +1,4 @@
+# Mock API requirements - moved from root directory
+# Add mock-specific requirements as needed
+fastapi
+uvicorn[standard]

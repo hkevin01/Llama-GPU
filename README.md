@@ -1,23 +1,21 @@
 # Llama-GPU
 
-GPU-accelerated implementation of the Llama model with ROCm support for AMD GPUs.
+A minimal, production-ready inference platform for LLaMA models with CPU/GPU support and React dashboard.
 
 ## Features
 
-- AMD GPU acceleration with ROCm 6.3 support
-- WebSocket-based chat interface
-- Optimized model inference
-- Comprehensive GPU status monitoring
-- Easy setup and configuration
+- **Multi-Backend Support**: Automatic CPU/CUDA/ROCm backend detection
+- **FastAPI Server**: OpenAI-compatible REST API with WebSocket streaming
+- **React Dashboard**: Real-time monitoring and chat interface
+- **Docker Ready**: Full containerization with Docker Compose
+- **Minimal & Stable**: Works out-of-the-box with CPU fallback
 
 [![Build Status](https://github.com/hkevin01/Llama-GPU/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hkevin01/Llama-GPU/actions)
 [![Test Coverage](https://codecov.io/gh/hkevin01/Llama-GPU/branch/main/graph/badge.svg)](https://codecov.io/gh/hkevin01/Llama-GPU)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
-**A high-performance, modular GPU-accelerated inference platform for LLaMA models with cloud deployment capabilities, interactive dashboard, plugin architecture, and comprehensive benchmarking.**
-
-> 🚀 **Professional-grade inference platform** supporting CPU/CUDA/ROCm backends, multi-GPU scaling, quantization, and production-ready API endpoints with React-based monitoring dashboard.
+> 🚀 **Minimal inference platform** with FastAPI server, React dashboard, and Docker support. Works with CPU/CUDA/ROCm backends.
 
 ---
 

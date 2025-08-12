@@ -1,0 +1,6 @@
+# Mock API requirements - moved from root directory
+# This file was previously in the root directory
+
+flask
+flask-socketio
+requests
