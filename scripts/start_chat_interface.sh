@@ -1,9 +1,20 @@
-#!/bin/bash
-# Start chat interface script - moved from root directory
-# This script was previously in the root directory
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "Start chat interface script - moved to scripts directory"
-echo "Usage: Run from project root directory"
+cd "$(dirname "$0")"
 
-# Start the chat interface
-echo "Starting chat interface..."
+# Start API
+./scripts/start_api.sh &
+API_PID=$!
+
+# Start GUI
+(
+	cd llama-gui
+	npm run start:react
+) &
+GUI_PID=$!
+
+trap 'kill $API_PID $GUI_PID || true' INT TERM EXIT
+
+wait
+
