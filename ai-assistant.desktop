@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=AI Assistant
+Comment=Native Ubuntu AI Assistant powered by Phi4-Mini
+Exec=/home/kevin/Projects/Llama-GPU/tools/gui/ai_assistant_app.py
+Icon=system-run-symbolic
+Terminal=false
+Categories=Utility;Development;
+Keywords=ai;assistant;llm;chat;
+StartupNotify=true

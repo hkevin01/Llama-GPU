@@ -1,0 +1,12 @@
+#!/bin/bash
+# Quick launcher for AI Agent
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
+# Default to interactive if no args
+if [ $# -eq 0 ]; then
+    python3 tools/ai_agent.py --interactive
+else
+    python3 tools/ai_agent.py "$@"
+fi
