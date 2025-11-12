@@ -426,6 +426,25 @@ class ChatWindow(Gtk.Window):
         except Exception as e:
             print(f"⚠️ Error saving conversation history: {e}")
 
+    def clear_conversation_history(self):
+        """Clear all conversation history from memory and disk."""
+        try:
+            # Clear in-memory history
+            self.conversation_history = []
+
+            # Clear chat display
+            self.chat_buffer.set_text("")
+
+            # Delete history file
+            success = self.history_manager.clear_history()
+            if success:
+                print("✅ Conversation history cleared")
+                self.append_chat("", "💬 Conversation history cleared. Starting fresh!", "system")
+            else:
+                print("⚠️ Failed to clear history file")
+        except Exception as e:
+            print(f"⚠️ Error clearing conversation history: {e}")
+
     def append_chat(self, role, text, tag=None):
         """Append text to chat display."""
         end_iter = self.chat_buffer.get_end_iter()
@@ -680,15 +699,26 @@ class AIAssistantApp:
         # Separator
         menu.append(Gtk.SeparatorMenuItem())
 
-        # Clear History
-        clear_history_item = Gtk.MenuItem(label="🗑️ Clear History")
-        clear_history_item.connect("activate", self.clear_conversation_history)
-        menu.append(clear_history_item)
+        # History submenu
+        history_menu = Gtk.Menu()
+        history_item = Gtk.MenuItem(label="📚 History")
+        history_item.set_submenu(history_menu)
+        menu.append(history_item)
 
         # Save History
-        save_history_item = Gtk.MenuItem(label="💾 Save History")
+        save_history_item = Gtk.MenuItem(label="💾 Save History Now")
         save_history_item.connect("activate", self.save_history_now)
-        menu.append(save_history_item)
+        history_menu.append(save_history_item)
+
+        # Clear History
+        clear_history_item = Gtk.MenuItem(label="🗑️  Clear History")
+        clear_history_item.connect("activate", self.clear_history_confirm)
+        history_menu.append(clear_history_item)
+
+        # Open History Folder
+        open_folder_item = Gtk.MenuItem(label="� Open History Folder")
+        open_folder_item.connect("activate", self.open_history_folder)
+        history_menu.append(open_folder_item)
 
         # Separator
         menu.append(Gtk.SeparatorMenuItem())
@@ -796,6 +826,67 @@ class AIAssistantApp:
                     "dialog-error"
                 )
                 notification.show()
+
+    def clear_history_confirm(self, widget):
+        """Clear conversation history with confirmation."""
+        if hasattr(self, 'chat_window') and self.chat_window:
+            dialog = Gtk.MessageDialog(
+                transient_for=self.chat_window,
+                flags=0,
+                message_type=Gtk.MessageType.WARNING,
+                buttons=Gtk.ButtonsType.YES_NO,
+                text="Clear All History?"
+            )
+            dialog.format_secondary_text(
+                "This will permanently delete all conversation history.\n"
+                "This action cannot be undone."
+            )
+
+            response = dialog.run()
+            dialog.destroy()
+
+            if response == Gtk.ResponseType.YES:
+                try:
+                    self.chat_window.clear_conversation_history()
+
+                    # Show notification
+                    notification = Notify.Notification.new(
+                        "History Cleared",
+                        "All conversation history has been deleted",
+                        "dialog-information"
+                    )
+                    notification.show()
+                except Exception as e:
+                    print(f"Error clearing history: {e}")
+
+    def open_history_folder(self, widget):
+        """Open the conversation history folder."""
+        history_dir = os.path.expanduser("~/.config/llama-gpu-assistant")
+
+        try:
+            # Create directory if it doesn't exist
+            os.makedirs(history_dir, exist_ok=True)
+
+            # Open folder in file manager
+            subprocess.Popen(['xdg-open', history_dir])
+
+            # Show notification
+            notification = Notify.Notification.new(
+                "Opening History Folder",
+                f"Location: {history_dir}",
+                "folder-open"
+            )
+            notification.show()
+        except Exception as e:
+            print(f"Error opening history folder: {e}")
+
+            # Show error notification
+            notification = Notify.Notification.new(
+                "Cannot Open Folder",
+                f"Error: {str(e)}",
+                "dialog-error"
+            )
+            notification.show()
 
     def quit_app(self, widget):
         """Quit application and save conversation history."""

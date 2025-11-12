@@ -31,7 +31,7 @@ echo ""
 
 # Step 4: Install desktop file
 echo "🖥️  Step 4: Installing desktop entry..."
-cp "$PROJECT_ROOT/ai-assistant.desktop" "$HOME/.local/share/applications/llama-gpu-assistant.desktop"
+cp "$PROJECT_ROOT/share/applications/ai-assistant.desktop" "$HOME/.local/share/applications/llama-gpu-assistant.desktop"
 
 # Update paths in the installed desktop file to use absolute paths
 sed -i "s|/home/kevin/Projects/Llama-GPU|$PROJECT_ROOT|g" "$HOME/.local/share/applications/llama-gpu-assistant.desktop"
