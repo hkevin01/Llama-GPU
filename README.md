@@ -185,7 +185,7 @@ flowchart LR
 
 ### 🔧 Backend Engines
 
-#### **Ollama Integration** 
+#### **Ollama Integration**
 *Why: Production-ready, optimized model serving*
 
 - **Technology**: HTTP REST client with streaming support
@@ -244,6 +244,559 @@ ROOT_COMMANDS = ['apt', 'systemctl', 'mount']          # Require sudo
 3. Execute with `sudo -S` (stdin password)
 4. Parse output in real-time
 5. Return structured result (exit code, stdout, stderr)
+
+---
+
+## 🔧 Command Execution Tooling - Deep Dive
+
+### The Problem
+
+**Challenge:** How do we allow an AI assistant to execute terminal commands safely and effectively?
+
+Modern LLM assistants need to interact with the system to be truly useful - checking files, running scripts, installing packages, managing services. However, this creates significant challenges:
+
+1. **Security Risk**: AI could execute dangerous commands (`rm -rf /`, `dd if=/dev/zero`)
+2. **Permission Barriers**: Many useful operations require root/sudo access
+3. **Interactive Prompts**: Standard subprocess can't handle password prompts
+4. **Output Management**: Large command outputs can overwhelm the UI
+5. **Error Handling**: Need structured error reporting for AI to understand failures
+
+### The Solution Architecture
+
+We built a **three-tier command execution system** that balances safety, capability, and user control:
+
+```mermaid
+graph TB
+    subgraph "AI Layer"
+        AI[LLM Response] --> PARSE[Command Parser]
+    end
+
+    subgraph "Safety Layer"
+        PARSE --> CLASSIFY[Command Classifier]
+        CLASSIFY -->|Safe| SAFE[Safe Commands]
+        CLASSIFY -->|Needs Sudo| SUDO[Root Commands]
+        CLASSIFY -->|Dangerous| BLOCK[Blocked]
+    end
+
+    subgraph "Execution Layer"
+        SAFE --> EXEC1[subprocess.run]
+        SUDO --> EXEC2[pexpect + sudo -S]
+        BLOCK --> REJECT[Error Response]
+    end
+
+    subgraph "Response Layer"
+        EXEC1 --> RESULT[Structured Result]
+        EXEC2 --> RESULT
+        REJECT --> RESULT
+        RESULT --> DISPLAY[UI Display]
+    end
+
+    style AI fill:#667eea
+    style CLASSIFY fill:#f093fb
+    style BLOCK fill:#ff6b6b
+    style EXEC2 fill:#43e97b
+    style RESULT fill:#4facfe
+```
+
+### Component 1: Command Parser & Extractor
+
+**File:** `tools/execution/command_executor.py` (lines 140-177)
+
+**Problem Solved:** Extract commands from AI's natural language response.
+
+**Implementation:**
+```python
+def extract_commands(self, text: str) -> List[str]:
+    """Extract commands from AI response with multiple patterns."""
+    commands = []
+    seen = set()  # Avoid duplicates
+
+    # Pattern 1: $ command (shell prompt style)
+    for match in re.finditer(r'\$\s+([^\n]+)', text):
+        cmd = match.group(1).strip()
+        # Remove markdown backticks and formatting
+        cmd = cmd.strip('`').strip("'").strip('"').strip()
+        if cmd and cmd not in seen:
+            commands.append(cmd)
+            seen.add(cmd)
+
+    # Pattern 2: `$ command` (backtick enclosed)
+    for match in re.finditer(r'`\$\s+([^`]+)`', text):
+        cmd = match.group(1).strip()
+        if cmd and cmd not in seen:
+            commands.append(cmd)
+            seen.add(cmd)
+
+    # Pattern 3: ```bash code blocks
+    for match in re.finditer(r'```(?:bash|sh|shell)?\n(.*?)```', text, re.DOTALL):
+        code = match.group(1).strip()
+        for line in code.split('\n'):
+            line = line.strip()
+            if line.startswith('$ '):
+                line = line[2:]
+            if line and not line.startswith('#') and line not in seen:
+                commands.append(line)
+                seen.add(line)
+
+    return commands
+```
+
+**Why This Works:**
+- **Multiple Formats**: Handles different AI output styles
+- **Deduplication**: Prevents running the same command twice
+- **Markdown Cleaning**: Removes formatting artifacts
+- **Comment Filtering**: Skips bash comments
+
+**Example AI Response Parsing:**
+```
+AI: "Let me check your disk space:
+
+$ df -h
+
+I can also show your home directory:
+```bash
+$ ls -la ~/
+```"
+
+Extracted: ["df -h", "ls -la ~/"]
+```
+
+### Component 2: Safety Validator
+
+**File:** `tools/execution/command_executor.py` (lines 73-117)
+
+**Problem Solved:** Prevent dangerous commands while allowing useful ones.
+
+**Three-Tier Classification:**
+
+```python
+class SafeCommandExecutor:
+    # Tier 1: Auto-Execute (No Confirmation)
+    SAFE_COMMANDS = [
+        'ls', 'pwd', 'whoami', 'date', 'echo', 'cat',
+        'grep', 'find', 'which', 'type', 'help',
+        'python3', 'node', 'git status', 'git log',
+        'df', 'du', 'ps', 'top', 'free',
+        'uname', 'hostname', 'uptime'
+    ]
+
+    # Tier 2: Root Required (Sudo Handler)
+    ROOT_COMMANDS = [
+        'apt', 'apt-get', 'systemctl', 'service',
+        'useradd', 'userdel', 'passwd',
+        'mount', 'umount', 'fdisk', 'parted'
+    ]
+
+    # Tier 3: Always Blocked (Safety Critical)
+    DANGEROUS_COMMANDS = [
+        'rm -rf /',
+        'dd ',
+        'mkfs',
+        ':(){ :|:& };:',  # Fork bomb
+        'chmod -R 777 /',
+        'chown -R'
+    ]
+
+    def validate_command(self, command: str) -> Tuple[bool, str]:
+        """Validate command safety."""
+        if not command or not command.strip():
+            return False, "Empty command"
+
+        if self.is_dangerous(command):
+            return False, "Dangerous command detected"
+
+        if self.requires_root(command) and not self.allow_root:
+            return False, "Command requires root privileges (not allowed)"
+
+        return True, "Command is valid"
+```
+
+**Decision Tree:**
+```
+Command Input
+    │
+    ├─ Empty? → Reject
+    │
+    ├─ Dangerous? → Block (rm -rf /, dd, mkfs)
+    │
+    ├─ Needs Root? → Route to Sudo Executor
+    │
+    ├─ Safe Command? → Execute Immediately
+    │
+    └─ Unknown? → Require User Confirmation
+```
+
+**Why This Works:**
+- **Layered Defense**: Multiple checks prevent bypass
+- **Explicit Blocking**: Hard-coded dangerous commands
+- **Flexible Configuration**: Can enable/disable root commands
+- **User Override**: Confirmation prompts for edge cases
+
+### Component 3: Sudo Executor with pexpect
+
+**File:** `tools/execution/sudo_executor.py` (lines 50-289)
+
+**Problem Solved:** Execute commands requiring root privileges without compromising security.
+
+**The Challenge:**
+Python's standard `subprocess` cannot handle interactive password prompts. When you run `sudo command`, it prompts for a password on `/dev/tty`, which subprocess can't interact with.
+
+**The Solution - pexpect:**
+
+```python
+import pexpect
+
+class SudoExecutor:
+    def execute_sudo(self, command: str, confirm: bool = True) -> SudoResult:
+        """Execute command with sudo using pexpect."""
+
+        # Step 1: Safety Check
+        if self.is_dangerous(command):
+            return SudoResult(
+                command=command,
+                success=False,
+                error="BLOCKED: Extremely dangerous command!",
+                exit_code=-1
+            )
+
+        # Step 2: User Confirmation (if not Beast Mode)
+        if confirm and self.is_high_risk(command):
+            print(f"⚠️  HIGH RISK COMMAND DETECTED")
+            print(f"   Command: {command}")
+            response = input("   Type 'YES I UNDERSTAND' to continue: ")
+            if response != "YES I UNDERSTAND":
+                return SudoResult(success=False, error="User cancelled")
+
+        # Step 3: Get Password (cached if enabled)
+        password = self.get_password()
+
+        # Step 4: Execute with pexpect
+        # Use sudo -S to read password from stdin
+        if not command.startswith('sudo '):
+            command = f'sudo -S {command}'
+
+        # Spawn interactive process
+        child = pexpect.spawn(command, timeout=self.timeout)
+
+        # Send password immediately
+        child.sendline(password)
+
+        # Step 5: Collect Output in Real-time
+        output = []
+        while True:
+            try:
+                index = child.expect(['\r\n', '\n', pexpect.EOF, pexpect.TIMEOUT], timeout=1)
+                if index in [0, 1]:  # New line
+                    line = child.before.decode('utf-8', errors='replace')
+                    if line and not line.startswith('[sudo]'):  # Skip password prompt
+                        output.append(line + '\n')
+                        print(line)  # Real-time display
+                elif index == 2:  # EOF - command finished
+                    remaining = child.before.decode('utf-8', errors='replace')
+                    if remaining:
+                        output.append(remaining)
+                        print(remaining, end='')
+                    break
+                else:  # TIMEOUT - continue waiting
+                    continue
+            except pexpect.TIMEOUT:
+                break
+            except pexpect.EOF:
+                break
+
+        # Step 6: Get Exit Code
+        child.close()
+        exit_code = child.exitstatus if child.exitstatus is not None else -1
+
+        # Step 7: Return Structured Result
+        return SudoResult(
+            command=command,
+            success=exit_code == 0,
+            output=''.join(output),
+            error="" if exit_code == 0 else f"Exit code: {exit_code}",
+            exit_code=exit_code
+        )
+```
+
+**Key Technologies:**
+
+| Technology | Purpose | Why Chosen |
+|-----------|---------|-----------|
+| **pexpect** | Interactive process control | Only library that can handle `/dev/tty` password prompts |
+| **sudo -S** | Read password from stdin | Allows programmatic password entry |
+| **Password Caching** | Session-based storage | Avoids repeated prompts (UX improvement) |
+| **Real-time Streaming** | Output as it happens | User sees progress for long operations |
+| **Timeout Management** | Prevent hanging | Kills processes that run too long |
+
+**Why pexpect Over Alternatives:**
+
+```python
+# ❌ subprocess - Can't handle password prompts
+result = subprocess.run(['sudo', 'apt', 'update'])
+# Fails: sudo prompts to /dev/tty, subprocess can't respond
+
+# ❌ os.system - Security risk, no output capture
+os.system(f'echo {password} | sudo -S apt update')
+# Fails: Password visible in process list, no error handling
+
+# ✅ pexpect - Interactive control
+child = pexpect.spawn('sudo -S apt update')
+child.sendline(password)
+# Works: Password sent securely, full output control
+```
+
+### Component 4: Output Formatter & Display
+
+**File:** `tools/gui/ai_assistant_app.py` (lines 340-356)
+
+**Problem Solved:** Large command outputs crash UI or overwhelm users.
+
+**Implementation:**
+```python
+def show_command_result(self, result):
+    """Display command execution result with smart truncation."""
+    if result.success:
+        output = result.stdout.strip() if result.stdout else "(no output)"
+
+        # Smart truncation for large outputs
+        if len(output) > 5000:
+            self.append_chat("",
+                f"✅ {output[:5000]}\n\n"
+                f"... (output truncated, {len(output)} total characters)",
+                "system")
+        else:
+            self.append_chat("", f"✅ {output}", "system")
+    else:
+        error = result.stderr.strip() if result.stderr else "Command failed"
+        if len(error) > 2000:
+            self.append_chat("",
+                f"❌ {error[:2000]}\n\n... (error truncated)",
+                "error")
+        else:
+            self.append_chat("", f"❌ {error}", "error")
+```
+
+**Features:**
+- **Success Indicators**: ✅ for success, ❌ for failures
+- **Smart Truncation**: 5000 chars for output, 2000 for errors
+- **Character Count**: Shows total size when truncated
+- **Styled Display**: Different colors for success/error/system messages
+
+### Integration: How It All Works Together
+
+**Example Flow: User asks "update my system"**
+
+```python
+# 1. AI generates response
+response = """To update your system, I'll run the package manager update:
+
+$ sudo apt update
+
+This will refresh the package lists."""
+
+# 2. Command Parser extracts command
+commands = extract_commands(response)  # → ["sudo apt update"]
+
+# 3. Safety Validator classifies
+needs_sudo = requires_root("sudo apt update")  # → True
+is_safe = validate_command("sudo apt update")   # → True, "Valid"
+
+# 4. Route to Sudo Executor
+if needs_sudo:
+    sudo_executor = SudoExecutor(cache_password=True)
+
+    # 5. User confirmation (if not Beast Mode)
+    print("🔐 Sudo command: sudo apt update")
+    response = input("Execute? (yes/no): ")
+
+    if response == "yes":
+        # 6. Get password (or use cached)
+        password = getpass.getpass("Password: ")
+
+        # 7. Execute with pexpect
+        result = sudo_executor.execute("sudo apt update")
+
+        # 8. Display results
+        if result.success:
+            print(f"✅ Command completed (exit {result.exit_code})")
+            print(result.output[:5000])  # Truncated display
+        else:
+            print(f"❌ Command failed (exit {result.exit_code})")
+            print(result.error)
+```
+
+### Security Features
+
+**1. Multi-Layer Validation**
+```python
+# Check 1: Command not empty
+if not command.strip():
+    return False, "Empty command"
+
+# Check 2: Not in dangerous list
+if any(dangerous in command for dangerous in DANGEROUS_COMMANDS):
+    return False, "Dangerous command blocked"
+
+# Check 3: Explicit user confirmation for high-risk
+if is_high_risk(command):
+    response = input("Type 'YES I UNDERSTAND': ")
+    if response != "YES I UNDERSTAND":
+        return False, "User cancelled"
+```
+
+**2. Password Security**
+```python
+# ✅ Secure password handling
+password = getpass.getpass()  # Hidden input
+child.sendline(password)      # Direct to process stdin
+# Password never appears in logs or process list
+
+# ❌ Insecure (never do this)
+os.system(f'echo {password} | sudo command')  # Visible in ps aux
+```
+
+**3. Timeout Protection**
+```python
+# Prevent infinite hanging
+child = pexpect.spawn(command, timeout=300)  # 5 minute max
+try:
+    child.expect(pattern, timeout=1)
+except pexpect.TIMEOUT:
+    child.kill(signal.SIGTERM)
+    return "Command timed out"
+```
+
+### Performance Optimizations
+
+**1. Password Caching**
+```python
+# Cache password for session (opt-in)
+self._cached_password = password  # Stored in memory only
+# Avoids repeated prompts for multiple sudo commands
+# Cleared when process exits
+```
+
+**2. Streaming Output**
+```python
+# Don't wait for command completion to show output
+for line in child:
+    print(line, end='', flush=True)  # Real-time display
+    output_buffer.append(line)
+# User sees progress, not frozen UI
+```
+
+**3. Non-blocking Execution**
+```python
+# Run in separate thread for GUI
+def execute_async():
+    result = executor.execute(command)
+    GLib.idle_add(display_result, result)  # Update UI thread-safe
+
+thread = threading.Thread(target=execute_async, daemon=True)
+thread.start()
+# GUI remains responsive during execution
+```
+
+### Testing Strategy
+
+**Unit Tests** (`tests/integration/test_full_stack.py`):
+```python
+def test_safe_command_detection():
+    executor = SafeCommandExecutor(interactive=False)
+
+    # Safe commands
+    assert executor.is_safe("ls -la")
+    assert executor.is_safe("pwd")
+
+    # Dangerous commands
+    assert executor.is_dangerous("rm -rf /")
+    assert not executor.is_safe("rm -rf /")
+
+    # Root commands
+    assert executor.requires_root("sudo apt install")
+    assert executor.requires_root("systemctl status")
+```
+
+**Integration Tests**:
+```python
+def test_command_execution():
+    executor = SafeCommandExecutor(interactive=False)
+    result = executor.execute("echo 'test'", confirm=True)
+
+    assert result.success
+    assert "test" in result.stdout
+    print(f"✅ Command executed: {result.command}")
+```
+
+### Usage Examples
+
+**Example 1: CLI Agent**
+```bash
+$ python3 tools/ai_agent.py "check disk space"
+🤖 phi4-mini:3.8b thinking...
+
+Let me check your disk usage:
+
+$ df -h
+
+🔧 Executing: df -h
+✅ Success (exit 0)
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p2  458G  123G  312G  29% /
+```
+
+**Example 2: Desktop GUI**
+```
+User: "install neofetch"
+
+AI: "I'll install neofetch for you:
+
+$ sudo apt install neofetch"
+
+[Confirmation Dialog appears]
+🔐 Sudo command: sudo apt install neofetch
+[Password prompt]
+[Real-time output streams...]
+✅ Command completed successfully
+```
+
+**Example 3: Beast Mode (Autonomous)**
+```bash
+$ python3 tools/ai_agent.py --beast-mode "update system packages"
+
+🔥 BEAST MODE ACTIVATED
+
+AI: "I'll update your system packages:
+
+$ sudo apt update && sudo apt upgrade -y"
+
+[No confirmation - executes immediately]
+[Real-time streaming output...]
+✅ Packages updated successfully
+```
+
+### Lessons Learned
+
+**What Worked Well:**
+- ✅ pexpect solved the interactive prompt problem elegantly
+- ✅ Multi-tier safety model prevented accidents
+- ✅ Real-time streaming kept users informed
+- ✅ Password caching improved UX without compromising security
+
+**Challenges Overcome:**
+- 🔧 Parsing AI output with multiple formats (regex patterns)
+- 🔧 Handling large outputs without crashing UI (truncation)
+- 🔧 Thread-safe UI updates in GTK3 (GLib.idle_add)
+- 🔧 Timeout management for hanging processes
+
+**Future Improvements:**
+- [ ] Add command history and undo functionality
+- [ ] Implement sandboxing with Docker/firejail
+- [ ] Add AI-powered command suggestion/correction
+- [ ] Create audit log for all executed commands
+- [ ] Add rollback capability for system changes
+
+---
 
 ### 🎮 AMD ROCm Optimization
 
@@ -319,7 +872,7 @@ PYTORCH_ROCM_ARCH=gfx1030             # Explicit architecture
 #### **Why FastAPI?**
 - **Definition**: Modern Python web framework built on Starlette and Pydantic
 - **Motivation**: Automatic OpenAPI docs, async support, type validation
-- **Implementation**: 
+- **Implementation**:
   ```python
   @app.post("/v1/chat/completions")
   async def chat_completions(request: ChatRequest):
@@ -768,12 +1321,12 @@ client = OllamaClient("http://localhost:11434")
 # Check availability
 if client.is_available():
     print("✅ Ollama is ready")
-    
+
     # List models
     models = client.list_models()
     for model in models:
         print(f"- {model['name']}: {model.get('size', 0) / 1e9:.2f} GB")
-    
+
     # Generate text (streaming)
     for chunk in client.generate(
         model="phi4-mini:3.8b",
@@ -781,7 +1334,7 @@ if client.is_available():
         stream=True
     ):
         print(chunk, end="", flush=True)
-    
+
     # Chat with history
     messages = [
         {"role": "user", "content": "What is Python?"},
@@ -797,7 +1350,7 @@ if backend.initialize():
     # Simple inference
     result = backend.infer("Explain recursion", max_tokens=200)
     print(result)
-    
+
     # Get model info
     info = backend.get_model_info()
     print(f"Model: {info.get('modelfile')}")
