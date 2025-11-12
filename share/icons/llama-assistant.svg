@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="64" cy="64" r="60" fill="#667eea" stroke="#4c51bf" stroke-width="4"/>
+  
+  <!-- GPU Chip Base -->
+  <rect x="32" y="40" width="64" height="48" rx="4" fill="#1a202c" stroke="#2d3748" stroke-width="2"/>
+  
+  <!-- Circuit Lines -->
+  <line x1="32" y1="52" x2="20" y2="52" stroke="#48bb78" stroke-width="2"/>
+  <line x1="32" y1="64" x2="20" y2="64" stroke="#48bb78" stroke-width="2"/>
+  <line x1="32" y1="76" x2="20" y2="76" stroke="#48bb78" stroke-width="2"/>
+  
+  <line x1="96" y1="52" x2="108" y2="52" stroke="#48bb78" stroke-width="2"/>
+  <line x1="96" y1="64" x2="108" y2="64" stroke="#48bb78" stroke-width="2"/>
+  <line x1="96" y1="76" x2="108" y2="76" stroke="#48bb78" stroke-width="2"/>
+  
+  <!-- AI Brain Symbol -->
+  <path d="M 48 52 Q 64 48 80 52" stroke="#f093fb" stroke-width="2.5" fill="none"/>
+  <path d="M 48 64 Q 64 60 80 64" stroke="#f093fb" stroke-width="2.5" fill="none"/>
+  <path d="M 48 76 Q 64 80 80 76" stroke="#f093fb" stroke-width="2.5" fill="none"/>
+  
+  <!-- Center Core -->
+  <circle cx="64" cy="64" r="8" fill="#43e97b" stroke="#38a169" stroke-width="2"/>
+  
+  <!-- Corner Dots (GPU pins) -->
+  <circle cx="36" cy="44" r="2" fill="#48bb78"/>
+  <circle cx="92" cy="44" r="2" fill="#48bb78"/>
+  <circle cx="36" cy="84" r="2" fill="#48bb78"/>
+  <circle cx="92" cy="84" r="2" fill="#48bb78"/>
+  
+  <!-- Lightning Bolt (Power/Speed) -->
+  <path d="M 58 96 L 62 106 L 58 106 L 62 116 L 54 106 L 58 106 Z" fill="#ffd700" stroke="#f59e0b" stroke-width="1"/>
+  <path d="M 70 96 L 74 106 L 70 106 L 74 116 L 66 106 L 70 106 Z" fill="#ffd700" stroke="#f59e0b" stroke-width="1"/>
+</svg>

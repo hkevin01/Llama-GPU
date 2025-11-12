@@ -2,6 +2,7 @@
 """
 AI Assistant - Native Ubuntu Desktop Application
 System tray icon with chat window, command execution, and Beast Mode
+Single instance enforced via lock file
 """
 
 import gi
@@ -14,6 +15,12 @@ import sys
 import os
 import threading
 import subprocess
+import fcntl
+import tempfile
+import json
+import time
+from datetime import datetime
+from pathlib import Path
 
 # Add project root to path
 sys.path.insert(0, "/home/kevin/Projects/Llama-GPU")
@@ -27,10 +34,204 @@ except ImportError:
     BACKEND_AVAILABLE = False
 
 
+class SingleInstance:
+    """
+    Ensures only one instance of the application can run at a time.
+    Uses file locking to prevent multiple launches.
+    """
+
+    def __init__(self, app_name="llama-gpu-assistant"):
+        self.app_name = app_name
+        self.lockfile_path = os.path.join(tempfile.gettempdir(), f"{app_name}.lock")
+        self.lockfile = None
+        self.is_locked = False
+
+    def acquire_lock(self):
+        """
+        Try to acquire the lock file.
+        Returns True if lock acquired (first instance), False if already running.
+        """
+        try:
+            # Open lock file
+            self.lockfile = open(self.lockfile_path, 'w')
+
+            # Try to acquire exclusive lock (non-blocking)
+            fcntl.flock(self.lockfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+            # Write PID to lock file
+            self.lockfile.write(str(os.getpid()))
+            self.lockfile.flush()
+
+            self.is_locked = True
+            return True
+
+        except IOError:
+            # Lock file is already locked by another instance
+            if self.lockfile:
+                self.lockfile.close()
+                self.lockfile = None
+            return False
+        except Exception as e:
+            print(f"Error acquiring lock: {e}")
+            if self.lockfile:
+                self.lockfile.close()
+                self.lockfile = None
+            return False
+
+    def release_lock(self):
+        """Release the lock file."""
+        if self.is_locked and self.lockfile:
+            try:
+                fcntl.flock(self.lockfile.fileno(), fcntl.LOCK_UN)
+                self.lockfile.close()
+
+                # Try to remove lock file
+                try:
+                    os.remove(self.lockfile_path)
+                except:
+                    pass
+
+                self.is_locked = False
+            except Exception as e:
+                print(f"Error releasing lock: {e}")
+
+    def __del__(self):
+        """Cleanup on object destruction."""
+        self.release_lock()
+
+
+class ConversationHistory:
+    """
+    Manages persistent conversation history.
+    Saves conversations to disk and restores them on startup.
+    """
+
+    def __init__(self, history_dir=None):
+        """Initialize conversation history manager."""
+        if history_dir is None:
+            # Use XDG_DATA_HOME or fallback to ~/.local/share
+            xdg_data = os.environ.get('XDG_DATA_HOME',
+                                      os.path.expanduser('~/.local/share'))
+            history_dir = os.path.join(xdg_data, 'llama-gpu-assistant')
+
+        self.history_dir = Path(history_dir)
+        self.history_dir.mkdir(parents=True, exist_ok=True)
+
+        self.history_file = self.history_dir / 'conversation_history.json'
+        self.max_history_items = 1000  # Limit to prevent unbounded growth
+        self.max_file_size = 10 * 1024 * 1024  # 10MB max
+
+    def load_history(self):
+        """
+        Load conversation history from disk.
+        Returns list of conversation items.
+        """
+        try:
+            if not self.history_file.exists():
+                print("No previous conversation history found")
+                return []
+
+            # Check file size
+            file_size = self.history_file.stat().st_size
+            if file_size > self.max_file_size:
+                print(f"History file too large ({file_size} bytes), creating backup")
+                backup_file = self.history_dir / f'conversation_history.backup.{int(time.time())}.json'
+                self.history_file.rename(backup_file)
+                return []
+
+            with open(self.history_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            history = data.get('conversations', [])
+            print(f"Loaded {len(history)} conversation items from history")
+
+            # Return only the most recent items
+            return history[-self.max_history_items:]
+
+        except json.JSONDecodeError as e:
+            print(f"Error decoding history file: {e}")
+            # Backup corrupted file
+            backup_file = self.history_dir / f'conversation_history.corrupted.{int(time.time())}.json'
+            try:
+                self.history_file.rename(backup_file)
+            except:
+                pass
+            return []
+        except Exception as e:
+            print(f"Error loading conversation history: {e}")
+            return []
+
+    def save_history(self, conversations):
+        """
+        Save conversation history to disk.
+
+        Args:
+            conversations: List of conversation items, each with:
+                - role: 'user' or 'assistant' or 'system'
+                - content: message text
+                - timestamp: Unix timestamp (optional)
+        """
+        try:
+            # Limit history size
+            if len(conversations) > self.max_history_items:
+                conversations = conversations[-self.max_history_items:]
+
+            # Add timestamps if missing
+            for conv in conversations:
+                if 'timestamp' not in conv:
+                    conv['timestamp'] = time.time()
+
+            data = {
+                'version': '1.0',
+                'saved_at': datetime.now().isoformat(),
+                'conversations': conversations
+            }
+
+            # Write to temporary file first (atomic write)
+            temp_file = self.history_file.with_suffix('.tmp')
+            with open(temp_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+
+            # Replace original file
+            temp_file.replace(self.history_file)
+
+            print(f"Saved {len(conversations)} conversation items to history")
+            return True
+
+        except Exception as e:
+            print(f"Error saving conversation history: {e}")
+            return False
+
+    def clear_history(self):
+        """Clear all conversation history."""
+        try:
+            if self.history_file.exists():
+                backup_file = self.history_dir / f'conversation_history.cleared.{int(time.time())}.json'
+                self.history_file.rename(backup_file)
+                print("History cleared (backup created)")
+            return True
+        except Exception as e:
+            print(f"Error clearing history: {e}")
+            return False
+
+    def export_history(self, export_path):
+        """Export history to a specific file."""
+        try:
+            if self.history_file.exists():
+                import shutil
+                shutil.copy2(self.history_file, export_path)
+                print(f"History exported to {export_path}")
+                return True
+            return False
+        except Exception as e:
+            print(f"Error exporting history: {e}")
+            return False
+
+
 class ChatWindow(Gtk.Window):
     """Main chat window for AI interactions."""
 
-    def __init__(self, model="phi4-mini:3.8b"):
+    def __init__(self, model="phi4-mini:3.8b", history_manager=None):
         super().__init__(title="AI Assistant")
         self.set_default_size(600, 500)
         self.set_border_width(10)
@@ -38,6 +239,12 @@ class ChatWindow(Gtk.Window):
         self.model = model
         self.conversation_history = []
         self.beast_mode = False
+
+        # History manager
+        self.history_manager = history_manager or ConversationHistory()
+
+        # Load previous conversation history
+        self._load_conversation_history()
 
         # Initialize backends
         if BACKEND_AVAILABLE:
@@ -148,8 +355,76 @@ class ChatWindow(Gtk.Window):
         """Add system message to conversation."""
         self.conversation_history.append({
             "role": "system",
-            "content": message
+            "content": message,
+            "timestamp": time.time()
         })
+
+    def _load_conversation_history(self):
+        """Load previous conversation history from disk."""
+        try:
+            history = self.history_manager.load_history()
+
+            if history:
+                # Restore conversation history to memory
+                self.conversation_history = history
+
+                # Display loaded history in UI (after UI is created)
+                GLib.idle_add(self._display_loaded_history)
+
+                print(f"✅ Loaded {len(history)} messages from previous session")
+            else:
+                print("ℹ️ No previous conversation history found")
+
+        except Exception as e:
+            print(f"⚠️ Error loading conversation history: {e}")
+
+    def _display_loaded_history(self):
+        """Display loaded conversation history in the chat window."""
+        try:
+            if not self.conversation_history:
+                return False
+
+            # Add separator to show this is previous history
+            self.append_chat("", "═══ Previous Conversation ═══", "system")
+
+            # Display each message
+            for msg in self.conversation_history:
+                role = msg.get("role", "unknown")
+                content = msg.get("content", "")
+
+                if role == "user":
+                    self.append_chat("You", content, "user")
+                elif role == "assistant":
+                    self.append_chat("AI", content, "assistant")
+                elif role == "system":
+                    self.append_chat("", content, "system")
+
+            # Add separator to show new conversation starts
+            self.append_chat("", "═══ Current Session ═══", "system")
+
+            # Scroll to bottom
+            adj = self.chat_view.get_vadjustment()
+            adj.set_value(adj.get_upper() - adj.get_page_size())
+
+            return False  # Don't call again
+
+        except Exception as e:
+            print(f"Error displaying loaded history: {e}")
+            return False
+
+    def save_conversation_history(self):
+        """Save current conversation history to disk."""
+        try:
+            if self.conversation_history:
+                success = self.history_manager.save_history(self.conversation_history)
+                if success:
+                    print(f"✅ Saved {len(self.conversation_history)} messages to history")
+                else:
+                    print("⚠️ Failed to save conversation history")
+            else:
+                print("ℹ️ No conversation history to save")
+        except Exception as e:
+            print(f"⚠️ Error saving conversation history: {e}")
 
     def append_chat(self, role, text, tag=None):
         """Append text to chat display."""
@@ -223,7 +498,8 @@ class ChatWindow(Gtk.Window):
         # Add to conversation history
         self.conversation_history.append({
             "role": "user",
-            "content": user_input
+            "content": user_input,
+            "timestamp": time.time()
         })
 
         try:
@@ -241,7 +517,8 @@ class ChatWindow(Gtk.Window):
             # Add complete response to history
             self.conversation_history.append({
                 "role": "assistant",
-                "content": response
+                "content": response,
+                "timestamp": time.time()
             })
 
             # Extract and execute commands
@@ -403,6 +680,19 @@ class AIAssistantApp:
         # Separator
         menu.append(Gtk.SeparatorMenuItem())
 
+        # Clear History
+        clear_history_item = Gtk.MenuItem(label="🗑️ Clear History")
+        clear_history_item.connect("activate", self.clear_conversation_history)
+        menu.append(clear_history_item)
+
+        # Save History
+        save_history_item = Gtk.MenuItem(label="💾 Save History")
+        save_history_item.connect("activate", self.save_history_now)
+        menu.append(save_history_item)
+
+        # Separator
+        menu.append(Gtk.SeparatorMenuItem())
+
         # About
         about_item = Gtk.MenuItem(label="ℹ️ About")
         about_item.connect("activate", self.show_about)
@@ -447,14 +737,119 @@ class AIAssistantApp:
         dialog.run()
         dialog.destroy()
 
+    def clear_conversation_history(self, widget):
+        """Clear conversation history with confirmation."""
+        dialog = Gtk.MessageDialog(
+            transient_for=None,
+            flags=0,
+            message_type=Gtk.MessageType.WARNING,
+            buttons=Gtk.ButtonsType.YES_NO,
+            text="Clear Conversation History?"
+        )
+        dialog.format_secondary_text(
+            "This will delete all saved conversation history.\n"
+            "This action cannot be undone.\n\n"
+            "A backup will be created before clearing."
+        )
+
+        response = dialog.run()
+        dialog.destroy()
+
+        if response == Gtk.ResponseType.YES:
+            if hasattr(self, 'chat_window') and self.chat_window:
+                try:
+                    self.chat_window.history_manager.clear_history()
+                    self.chat_window.conversation_history = []
+
+                    # Show notification
+                    notification = Notify.Notification.new(
+                        "History Cleared",
+                        "Conversation history has been cleared",
+                        "dialog-information"
+                    )
+                    notification.show()
+
+                    print("✅ Conversation history cleared")
+                except Exception as e:
+                    print(f"Error clearing history: {e}")
+
+    def save_history_now(self, widget):
+        """Manually save conversation history."""
+        if hasattr(self, 'chat_window') and self.chat_window:
+            try:
+                self.chat_window.save_conversation_history()
+
+                # Show notification
+                notification = Notify.Notification.new(
+                    "History Saved",
+                    f"Saved {len(self.chat_window.conversation_history)} messages",
+                    "dialog-information"
+                )
+                notification.show()
+            except Exception as e:
+                print(f"Error saving history: {e}")
+
+                # Show error notification
+                notification = Notify.Notification.new(
+                    "Save Failed",
+                    f"Could not save history: {str(e)}",
+                    "dialog-error"
+                )
+                notification.show()
+
     def quit_app(self, widget):
-        """Quit application."""
+        """Quit application and save conversation history."""
+        print("Shutting down AI Assistant...")
+
+        # Save conversation history before quitting
+        if hasattr(self, 'chat_window') and self.chat_window:
+            try:
+                self.chat_window.save_conversation_history()
+            except Exception as e:
+                print(f"Error saving history on quit: {e}")
+
         Notify.uninit()
         Gtk.main_quit()
 
 
 def main():
-    """Main entry point."""
+    """Main entry point with single instance enforcement."""
+    # Initialize notifications
+    Notify.init("AI Assistant")
+
+    # Enforce single instance
+    single_instance = SingleInstance("llama-gpu-assistant")
+
+    if not single_instance.acquire_lock():
+        # Another instance is already running
+        print("AI Assistant is already running!")
+
+        # Show notification to user
+        notification = Notify.Notification.new(
+            "AI Assistant Already Running",
+            "The application is already running. Check your system tray.",
+            "dialog-information"
+        )
+        notification.show()
+
+        # Show a dialog as well
+        dialog = Gtk.MessageDialog(
+            transient_for=None,
+            flags=0,
+            message_type=Gtk.MessageType.INFO,
+            buttons=Gtk.ButtonsType.OK,
+            text="AI Assistant Already Running"
+        )
+        dialog.format_secondary_text(
+            "The AI Assistant is already running.\n\n"
+            "Look for the icon in your system tray (top-right corner).\n"
+            "Click it to show the chat window."
+        )
+        dialog.run()
+        dialog.destroy()
+
+        sys.exit(0)
+
     # Check if Ollama is available
     if BACKEND_AVAILABLE:
         client = OllamaClient()
@@ -471,6 +866,7 @@ def main():
             )
             dialog.run()
             dialog.destroy()
+            single_instance.release_lock()
             return
 
     app = AIAssistantApp()
@@ -483,7 +879,11 @@ def main():
     )
     notification.show()
 
-    Gtk.main()
+    try:
+        Gtk.main()
+    finally:
+        # Cleanup: Release lock when application exits
+        single_instance.release_lock()
 
 
 if __name__ == "__main__":

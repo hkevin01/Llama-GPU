@@ -1,11 +1,15 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=AI Assistant
-Comment=Native Ubuntu AI Assistant powered by Phi4-Mini
-Exec=/home/kevin/Projects/Llama-GPU/tools/gui/ai_assistant_app.py
-Icon=system-run-symbolic
+Name=Llama GPU Assistant
+GenericName=AI Assistant
+Comment=GPU-Accelerated AI Assistant powered by Ollama and Phi4-Mini
+Exec=/home/kevin/Projects/Llama-GPU/bin/llama-assistant
+Icon=/home/kevin/Projects/Llama-GPU/share/icons/llama-assistant.svg
 Terminal=false
-Categories=Utility;Development;
-Keywords=ai;assistant;llm;chat;
+Categories=Utility;Development;Office;
+Keywords=ai;assistant;llm;chat;gpu;cuda;rocm;ollama;
 StartupNotify=true
+StartupWMClass=ai_assistant_app
+SingleMainWindow=true
+X-GNOME-SingleWindow=true

@@ -1,0 +1,21 @@
+#!/bin/bash
+# Llama GPU AI Assistant Launcher
+# This script ensures proper environment setup before launching the GUI
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Change to project root
+cd "$PROJECT_ROOT" || exit 1
+
+# Activate virtual environment if it exists
+if [ -d "$PROJECT_ROOT/venv" ]; then
+    source "$PROJECT_ROOT/venv/bin/activate"
+fi
+
+# Set Python path
+export PYTHONPATH="$PROJECT_ROOT:$PYTHONPATH"
+
+# Launch the GUI application
+exec python3 "$PROJECT_ROOT/tools/gui/ai_assistant_app.py" "$@"

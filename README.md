@@ -1386,6 +1386,30 @@ python3 tools/llm_cli.py --status  # System status
 
 ## 🚀 Quick Start
 
+### Desktop Application (Easiest!)
+
+Install as a native Ubuntu application that appears in your app menu:
+
+```bash
+# One-command installation
+./scripts/install_desktop_app.sh
+```
+
+Then launch from your applications menu:
+1. Press `Super` key (Windows key)
+2. Type "Llama GPU Assistant"
+3. Click the app icon
+
+**Features:**
+- 🎨 Beautiful GTK3 native interface
+- 🔔 System tray integration
+- 💬 Real-time AI chat with Phi4-Mini
+- 🔐 Safe command execution with sudo support
+- ⚡ GPU-accelerated inference
+- 🔥 Beast Mode for autonomous operation
+
+📖 **Full guide:** [Desktop App Installation](docs/DESKTOP_APP_INSTALLATION.md)
+
 ### Prerequisites
 - Python 3.8+
 - CUDA 11.8+ (for NVIDIA GPUs) or ROCm 5.0+ (for AMD GPUs)
