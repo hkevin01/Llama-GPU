@@ -106,18 +106,29 @@ graph TB
     QWEN ==>|"Inference"| GPU
     QWEN -.->|"Fallback"| CPU
 
-    style UI fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#fff
-    style MODEL fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#fff
-    style EXEC fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#fff
-    style HW fill:#1e293b,stroke:#8b5cf6,stroke-width:2px,color:#fff
+    classDef uiGroup fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#fff
+    classDef modelGroup fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#fff
+    classDef execGroup fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#fff
+    classDef hwGroup fill:#1e293b,stroke:#8b5cf6,stroke-width:2px,color:#fff
+    classDef cliStyle fill:#1e40af,stroke:#60a5fa,color:#fff
+    classDef guiStyle fill:#5b21b6,stroke:#a78bfa,color:#fff
+    classDef qwenStyle fill:#065f46,stroke:#10b981,color:#fff
+    classDef safeStyle fill:#92400e,stroke:#fb923c,color:#fff
+    classDef sudoStyle fill:#7c2d12,stroke:#f97316,color:#fff
+    classDef gpuStyle fill:#581c87,stroke:#a78bfa,color:#fff
+    classDef cpuStyle fill:#4c1d95,stroke:#a78bfa,color:#fff
 
-    style CLI fill:#1e40af,stroke:#60a5fa,color:#fff
-    style GUI fill:#5b21b6,stroke:#a78bfa,color:#fff
-    style QWEN fill:#065f46,stroke:#10b981,color:#fff
-    style SAFE fill:#92400e,stroke:#fb923c,color:#fff
-    style SUDO fill:#7c2d12,stroke:#f97316,color:#fff
-    style GPU fill:#581c87,stroke:#a78bfa,color:#fff
-    style CPU fill:#4c1d95,stroke:#a78bfa,color:#fff
+    class UI uiGroup
+    class MODEL modelGroup
+    class EXEC execGroup
+    class HW hwGroup
+    class CLI cliStyle
+    class GUI guiStyle
+    class QWEN qwenStyle
+    class SAFE safeStyle
+    class SUDO sudoStyle
+    class GPU gpuStyle
+    class CPU cpuStyle
 ```
 
 ### User Interaction Flow
@@ -164,11 +175,17 @@ sequenceDiagram
         Executor-->>User: ✅ Command output
     end
 
-    style User fill:#1e40af,stroke:#60a5fa,color:#fff
-    style AI fill:#065f46,stroke:#10b981,color:#fff
-    style Parser fill:#4c1d95,stroke:#a78bfa,color:#fff
-    style Validator fill:#7c2d12,stroke:#fb923c,color:#fff
-    style Executor fill:#92400e,stroke:#fbbf24,color:#fff
+    classDef userStyle fill:#1e40af,stroke:#60a5fa,color:#fff
+    classDef aiStyle fill:#065f46,stroke:#10b981,color:#fff
+    classDef parserStyle fill:#4c1d95,stroke:#a78bfa,color:#fff
+    classDef validatorStyle fill:#7c2d12,stroke:#fb923c,color:#fff
+    classDef executorStyle fill:#92400e,stroke:#fbbf24,color:#fff
+
+    class User userStyle
+    class AI aiStyle
+    class Parser parserStyle
+    class Validator validatorStyle
+    class Executor executorStyle
 ```
 
 ### Command Execution Flow
@@ -426,11 +443,17 @@ graph TB
         RESULT --> DISPLAY[UI Display]
     end
 
-    style AI fill:#667eea
-    style CLASSIFY fill:#f093fb
-    style BLOCK fill:#ff6b6b
-    style EXEC2 fill:#43e97b
-    style RESULT fill:#4facfe
+    classDef aiStyle fill:#667eea
+    classDef classifyStyle fill:#f093fb
+    classDef blockStyle fill:#ff6b6b
+    classDef exec2Style fill:#43e97b
+    classDef resultStyle fill:#4facfe
+
+    class AI aiStyle
+    class CLASSIFY classifyStyle
+    class BLOCK blockStyle
+    class EXEC2 exec2Style
+    class RESULT resultStyle
 ```
 
 ### Component 1: Command Parser & Extractor
