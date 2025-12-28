@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 AI Agent - Action-Oriented Assistant
-Uses phi4-mini for fast responses and actually executes actions.
+Uses qwen3:4b for fast responses and actually executes actions.
 Integrates Beast Mode protocol for autonomous task completion.
+Supports native Ollama tool-calling for reliable command execution.
 """
 
 import sys
@@ -29,6 +30,13 @@ try:
 except ImportError:
     EXECUTOR_AVAILABLE = False
     print("⚠️  Warning: Command executor not available")
+
+# Try to import native tool agent
+try:
+    from tools.tool_agent import ToolAgent
+    TOOL_AGENT_AVAILABLE = True
+except ImportError:
+    TOOL_AGENT_AVAILABLE = False
 
 
 class AIAgent:
@@ -93,7 +101,7 @@ Work autonomously and efficiently until tasks are complete."""
 
     def __init__(
         self,
-        model: str = "phi4-mini:3.8b",
+        model: str = "qwen3:4b",
         beast_mode: bool = False,
         allow_execution: bool = True,
         interactive_confirm: bool = True
@@ -392,7 +400,7 @@ Work autonomously and efficiently until tasks are complete."""
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="AI Agent - Action-Oriented Assistant with phi4-mini"
+        description="AI Agent - Action-Oriented Assistant with Qwen3"
     )
     parser.add_argument(
         "prompt",
@@ -401,8 +409,8 @@ def main():
     )
     parser.add_argument(
         "-m", "--model",
-        default="phi4-mini:3.8b",
-        help="Ollama model to use (default: phi4-mini:3.8b)"
+        default="qwen3:4b",
+        help="Ollama model to use (default: qwen3:4b)"
     )
     parser.add_argument(
         "-b", "--beast-mode",
@@ -424,6 +432,11 @@ def main():
         action="store_true",
         help="Auto-execute without confirmation"
     )
+    parser.add_argument(
+        "-t", "--native-tools",
+        action="store_true",
+        help="Use native Ollama tool-calling API (more reliable with Qwen3)"
+    )
 
     args = parser.parse_args()
 
@@ -438,7 +451,26 @@ def main():
         print("❌ Error: Ollama client not available")
         sys.exit(1)
 
-    # Create agent
+    # Use native tool-calling agent if requested
+    if args.native_tools:
+        if not TOOL_AGENT_AVAILABLE:
+            print("❌ Error: Native tool agent not available")
+            print("Make sure tools/tool_agent.py exists")
+            sys.exit(1)
+
+        print("🔧 Using native Ollama tool-calling mode")
+        agent = ToolAgent(model=args.model)
+
+        if args.interactive or not args.prompt:
+            agent.interactive()
+        else:
+            prompt = " ".join(args.prompt)
+            response = agent.chat(prompt)
+            if response:
+                print(f"\n{response}")
+        return
+
+    # Create standard agent (text-parsing mode)
     agent = AIAgent(
         model=args.model,
         beast_mode=args.beast_mode,

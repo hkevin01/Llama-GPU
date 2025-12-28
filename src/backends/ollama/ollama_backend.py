@@ -13,7 +13,7 @@ class OllamaBackend:
     def __init__(
         self,
         base_url: str = "http://localhost:11434",
-        default_model: str = "phi4-mini:3.8b"
+        default_model: str = "qwen3:4b"
     ):
         """Initialize Ollama backend.
         

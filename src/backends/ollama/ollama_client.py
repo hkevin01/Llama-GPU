@@ -52,7 +52,7 @@ class OllamaClient:
         """Generate text completion.
 
         Args:
-            model: Model name (e.g., 'phi4-mini:3.8b', 'deepseek-r1:7b')
+            model: Model name (e.g., 'qwen3:4b', 'deepseek-r1:7b')
             prompt: Input prompt
             max_tokens: Maximum tokens to generate
             temperature: Sampling temperature
@@ -112,6 +112,8 @@ class OllamaClient:
         max_tokens: int = 512,
         temperature: float = 0.7,
         stream: bool = False,
+        tools: Optional[List[Dict[str, Any]]] = None,
+        think: bool = False,
         **kwargs
     ):
         """Chat completion with conversation history.
@@ -122,15 +124,18 @@ class OllamaClient:
             max_tokens: Maximum tokens to generate
             temperature: Sampling temperature
             stream: Whether to stream responses
+            tools: Optional list of tool definitions for function calling
+            think: Whether thinking models should show their thinking process (default: False for speed)
             **kwargs: Additional Ollama parameters
 
         Returns:
-            Generated text (string) or generator if streaming
+            Generated text (string) or full response dict if tools are provided
         """
         payload = {
             "model": model,
             "messages": messages,
             "stream": stream,
+            "think": think,  # Disable thinking mode for faster responses
             "options": {
                 "num_predict": max_tokens,
                 "temperature": temperature,
@@ -138,12 +143,16 @@ class OllamaClient:
             }
         }
 
+        # Add tools if provided
+        if tools:
+            payload["tools"] = tools
+
         try:
             response = requests.post(
                 f"{self.api_url}/chat",
                 json=payload,
                 stream=stream,
-                timeout=60 if not stream else None
+                timeout=120 if not stream else None  # Longer timeout for tool calls
             )
             response.raise_for_status()
 
@@ -152,6 +161,16 @@ class OllamaClient:
             else:
                 data = response.json()
                 message = data.get("message", {})
+
+                # If tools were provided, return full message dict for tool_calls handling
+                if tools:
+                    return {
+                        "content": message.get("content", ""),
+                        "tool_calls": message.get("tool_calls", []),
+                        "thinking": message.get("thinking", ""),
+                        "role": message.get("role", "assistant")
+                    }
+
                 return message.get("content", "")
 
         except Exception as e:
@@ -172,6 +191,53 @@ class OllamaClient:
                         break
                 except json.JSONDecodeError:
                     continue
+
+    def quick_chat(
+        self,
+        model: str,
+        messages: List[Dict[str, str]],
+        stream: bool = False,
+        brief: bool = True,
+        **kwargs
+    ):
+        """Quick chat with optimized settings for faster thinking.
+
+        Still allows the model to think, but with tuned parameters
+        for quicker, more focused responses.
+
+        Args:
+            model: Model name
+            messages: List of message dicts with 'role' and 'content'
+            stream: Whether to stream responses (default False for complete responses)
+            brief: Add system prompt for concise answers (default True)
+            **kwargs: Override any default parameters
+
+        Returns:
+            Generated text (string) or generator if streaming
+        """
+        # Add brevity system prompt if requested and not already present
+        if brief:
+            has_system = any(m.get('role') == 'system' for m in messages)
+            if not has_system:
+                messages = [{'role': 'system', 'content': 'Be very brief. Keep answers short and direct.'}] + messages
+
+        # Optimized defaults for quick thinking
+        quick_settings = {
+            "max_tokens": 600,      # Enough for thinking + answer
+            "temperature": 0.4,     # More focused, less wandering
+            "think": True,          # Allow thinking for accuracy
+            "top_p": 0.8,           # More focused sampling
+            "repeat_penalty": 1.15, # Reduce repetition
+        }
+        # Allow overrides
+        quick_settings.update(kwargs)
+
+        return self.chat(
+            model=model,
+            messages=messages,
+            stream=stream,
+            **quick_settings
+        )
 
     def pull_model(self, model: str) -> bool:
         """Pull/download a model from Ollama registry.

@@ -40,7 +40,7 @@ class LLMCLi:
     def chat(self, prompt: str, model: Optional[str] = None, stream: bool = True):
         """Interactive chat with the model."""
         if self.backend == "ollama" and self.ollama:
-            model = model or "phi4-mini:3.8b"
+            model = model or "qwen3:4b"
             
             print(f"🤖 Using {model} via Ollama")
             print(f"💬 You: {prompt}")
@@ -210,7 +210,7 @@ def main():
     )
     parser.add_argument(
         "-m", "--model",
-        help="Model to use (default: phi4-mini:3.8b)"
+        help="Model to use (default: qwen3:4b)"
     )
     parser.add_argument(
         "-b", "--backend",

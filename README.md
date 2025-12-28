@@ -39,14 +39,14 @@ Llama-GPU is a comprehensive LLM inference platform that bridges the gap between
 
 ### 🎭 Why Llama-GPU?
 
-| Challenge | Solution |
-|-----------|----------|
+| Challenge                 | Solution                                                     |
+| ------------------------- | ------------------------------------------------------------ |
 | **Multiple LLM Backends** | Unified API supporting Ollama, LlamaGPU, and custom backends |
-| **Complex Setup** | One-command installation with automatic GPU detection |
-| **Limited Interfaces** | CLI, Native GUI, Web Dashboard, and REST API |
-| **AMD GPU Support** | Optimized for ROCm with gfx1030 (RX 5600 XT) safeguards |
-| **Command Execution** | Safe AI-powered terminal commands with sudo capability |
-| **Developer Experience** | Hot-reload, comprehensive logging, and debugging tools |
+| **Complex Setup**         | One-command installation with automatic GPU detection        |
+| **Limited Interfaces**    | CLI, Native GUI, Web Dashboard, and REST API                 |
+| **AMD GPU Support**       | Optimized for ROCm with gfx1030 (RX 5600 XT) safeguards      |
+| **Command Execution**     | Safe AI-powered terminal commands with sudo capability       |
+| **Developer Experience**  | Hot-reload, comprehensive logging, and debugging tools       |
 
 ---
 
@@ -68,7 +68,7 @@ graph TB
     end
 
     subgraph "Backend Engines"
-        OLLAMA[Ollama Backend<br/>phi4-mini, deepseek-r1]
+        OLLAMA[Ollama Backend<br/>qwen3, phi4-mini]
         LLAMA[LlamaGPU Engine<br/>Native Implementation]
     end
 
@@ -176,12 +176,12 @@ flowchart LR
 
 ### 🎨 Multiple Interfaces
 
-| Interface | Technology | Use Case |
-|-----------|-----------|----------|
-| **Native GUI** | GTK3 + AppIndicator3 | System tray integration, always accessible |
-| **CLI Agent** | Python + OllamaClient | Terminal workflows, automation, scripting |
-| **Web Dashboard** | React + FastAPI | Remote access, monitoring, team collaboration |
-| **REST API** | FastAPI + OpenAPI | Application integration, microservices |
+| Interface         | Technology            | Use Case                                      |
+| ----------------- | --------------------- | --------------------------------------------- |
+| **Native GUI**    | GTK3 + AppIndicator3  | System tray integration, always accessible    |
+| **CLI Agent**     | Python + OllamaClient | Terminal workflows, automation, scripting     |
+| **Web Dashboard** | React + FastAPI       | Remote access, monitoring, team collaboration |
+| **REST API**      | FastAPI + OpenAPI     | Application integration, microservices        |
 
 ### 🔧 Backend Engines
 
@@ -189,8 +189,8 @@ flowchart LR
 *Why: Production-ready, optimized model serving*
 
 - **Technology**: HTTP REST client with streaming support
-- **Models Supported**: phi4-mini (2.5GB), deepseek-r1 (4.7GB), llama3, mistral
-- **Performance**: 1-3s response time on phi4-mini
+- **Models Supported**: qwen3:4b (2.5GB), phi4-mini (2.5GB), llama3, mistral
+- **Performance**: 3-7s response time with Qwen3 Quick Thinking
 - **Implementation**: Custom OllamaClient with connection pooling
 
 **How it works:**
@@ -198,6 +198,41 @@ flowchart LR
 2. Lists available models via `/api/tags`
 3. Streams responses using `/api/generate` or `/api/chat`
 4. Automatically handles model loading and caching
+
+#### **Qwen3 Quick Thinking Mode** (NEW)
+*Why: Faster responses while maintaining accuracy*
+
+Qwen3 has a built-in "thinking" mode that reasons through problems before answering. We optimized this with tuned parameters:
+
+```python
+from src.backends.ollama import OllamaClient
+client = OllamaClient()
+
+# Quick thinking - optimized for speed + accuracy
+result = client.quick_chat(
+    model='qwen3:4b',
+    messages=[{'role': 'user', 'content': 'What is the capital of France?'}]
+)
+# Response: "Paris" in ~3 seconds
+```
+
+**Optimized Settings:**
+| Parameter        | Value         | Effect                               |
+| ---------------- | ------------- | ------------------------------------ |
+| `temperature`    | 0.4           | More focused, less wandering         |
+| `top_p`          | 0.8           | Tighter token sampling               |
+| `repeat_penalty` | 1.15          | Reduces repetitive thinking          |
+| `max_tokens`     | 600           | Enough for thinking + answer         |
+| `think`          | True          | Allows reasoning for accuracy        |
+| Auto brevity     | System prompt | "Be very brief. Keep answers short." |
+
+**Performance Benchmarks:**
+| Question Type | Example                | Response Time |
+| ------------- | ---------------------- | ------------- |
+| Simple fact   | "Capital of France?"   | ~3.2s         |
+| Math          | "15 × 7?"              | ~5.1s         |
+| List          | "Name 3 planets"       | ~6.8s         |
+| Command       | "List files in Linux?" | ~4.0s         |
 
 #### **LlamaGPU Native Engine**
 *Why: Direct GPU control, maximum customization*
@@ -549,13 +584,13 @@ class SudoExecutor:
 
 **Key Technologies:**
 
-| Technology | Purpose | Why Chosen |
-|-----------|---------|-----------|
-| **pexpect** | Interactive process control | Only library that can handle `/dev/tty` password prompts |
-| **sudo -S** | Read password from stdin | Allows programmatic password entry |
-| **Password Caching** | Session-based storage | Avoids repeated prompts (UX improvement) |
-| **Real-time Streaming** | Output as it happens | User sees progress for long operations |
-| **Timeout Management** | Prevent hanging | Kills processes that run too long |
+| Technology              | Purpose                     | Why Chosen                                               |
+| ----------------------- | --------------------------- | -------------------------------------------------------- |
+| **pexpect**             | Interactive process control | Only library that can handle `/dev/tty` password prompts |
+| **sudo -S**             | Read password from stdin    | Allows programmatic password entry                       |
+| **Password Caching**    | Session-based storage       | Avoids repeated prompts (UX improvement)                 |
+| **Real-time Streaming** | Output as it happens        | User sees progress for long operations                   |
+| **Timeout Management**  | Prevent hanging             | Kills processes that run too long                        |
 
 **Why pexpect Over Alternatives:**
 
@@ -868,14 +903,14 @@ PYTORCH_ROCM_ARCH=gfx1030             # Explicit architecture
 
 ### 🔐 Security Features
 
-| Feature | Implementation | Purpose |
-|---------|---------------|----------|
-| **Command Validation** | Regex + whitelist/blacklist | Prevent malicious commands |
-| **Sudo Confirmation** | Interactive prompts | User awareness for root operations |
-| **Dangerous Command Blocking** | Hard-coded blacklist | Protect against system damage |
-| **Output Truncation** | 5000 char limit | Prevent memory exhaustion |
-| **Session Timeout** | 300s default | Prevent hanging processes |
-| **API Key Support** | Bearer token auth | Secure API access |
+| Feature                        | Implementation              | Purpose                            |
+| ------------------------------ | --------------------------- | ---------------------------------- |
+| **Command Validation**         | Regex + whitelist/blacklist | Prevent malicious commands         |
+| **Sudo Confirmation**          | Interactive prompts         | User awareness for root operations |
+| **Dangerous Command Blocking** | Hard-coded blacklist        | Protect against system damage      |
+| **Output Truncation**          | 5000 char limit             | Prevent memory exhaustion          |
+| **Session Timeout**            | 300s default                | Prevent hanging processes          |
+| **API Key Support**            | Bearer token auth           | Secure API access                  |
 
 ---
 
@@ -883,18 +918,18 @@ PYTORCH_ROCM_ARCH=gfx1030             # Explicit architecture
 
 ### Core Technologies
 
-| Component | Technology | Version | Purpose |
-|-----------|-----------|---------|---------|
-| **Backend Language** | Python | 3.10+ | Main application logic |
-| **Web Framework** | FastAPI | 0.104+ | REST API server |
-| **LLM Backend** | Ollama | Latest | Model serving & inference |
-| **GPU Compute** | PyTorch + ROCm/CUDA | 2.0+ / 5.2+ | GPU acceleration |
-| **GUI Framework** | GTK3 | 3.0 | Native Ubuntu desktop app |
-| **System Tray** | AppIndicator3 | 0.1 | System integration |
-| **Command Execution** | pexpect | 4.8+ | Interactive sudo handling |
-| **HTTP Client** | requests | 2.31+ | API communication |
-| **Frontend** | React | 18+ | Web dashboard |
-| **Containerization** | Docker | 20.10+ | Deployment |
+| Component             | Technology          | Version     | Purpose                   |
+| --------------------- | ------------------- | ----------- | ------------------------- |
+| **Backend Language**  | Python              | 3.10+       | Main application logic    |
+| **Web Framework**     | FastAPI             | 0.104+      | REST API server           |
+| **LLM Backend**       | Ollama              | Latest      | Model serving & inference |
+| **GPU Compute**       | PyTorch + ROCm/CUDA | 2.0+ / 5.2+ | GPU acceleration          |
+| **GUI Framework**     | GTK3                | 3.0         | Native Ubuntu desktop app |
+| **System Tray**       | AppIndicator3       | 0.1         | System integration        |
+| **Command Execution** | pexpect             | 4.8+        | Interactive sudo handling |
+| **HTTP Client**       | requests            | 2.31+       | API communication         |
+| **Frontend**          | React               | 18+         | Web dashboard             |
+| **Containerization**  | Docker              | 20.10+      | Deployment                |
 
 ### Technology Choices & Rationale
 
@@ -959,12 +994,12 @@ PYTORCH_ROCM_ARCH=gfx1030             # Explicit architecture
 
 #### Tested Configurations
 
-| Hardware | GPU | VRAM | Model | Performance |
-|----------|-----|------|-------|-------------|
-| Desktop | RX 5600 XT | 6GB | phi4-mini:3.8b | 15-20 tokens/sec (CPU fallback) |
-| Desktop | RTX 3060 | 12GB | phi4-mini:3.8b | 45-60 tokens/sec |
-| Server | MI100 | 32GB | deepseek-r1:7b | 80-100 tokens/sec |
-| Laptop | Intel i7 | - | phi4-mini:3.8b | 3-5 tokens/sec (CPU) |
+| Hardware | GPU        | VRAM | Model          | Performance                     |
+| -------- | ---------- | ---- | -------------- | ------------------------------- |
+| Desktop  | RX 5600 XT | 6GB  | phi4-mini:3.8b | 15-20 tokens/sec (CPU fallback) |
+| Desktop  | RTX 3060   | 12GB | phi4-mini:3.8b | 45-60 tokens/sec                |
+| Server   | MI100      | 32GB | deepseek-r1:7b | 80-100 tokens/sec               |
+| Laptop   | Intel i7   | -    | phi4-mini:3.8b | 3-5 tokens/sec (CPU)            |
 
 ---
 
@@ -1208,17 +1243,17 @@ Llama-GPU/
 
 ### Key Components Explained
 
-| Component | Purpose | Key Files |
-|-----------|---------|-----------|
-| **Ollama Backend** | Production LLM serving | `ollama_client.py`, `ollama_backend.py` |
-| **Native Engine** | Direct PyTorch inference | `llama_gpu.py` |
-| **Unified API** | Multi-backend FastAPI server | `unified_api_server.py` |
-| **CLI Agent** | Terminal assistant with Beast Mode | `ai_agent.py` |
-| **Desktop GUI** | GTK3 system tray app | `ai_assistant_app.py` |
-| **Command Execution** | Safe system command handling | `command_executor.py`, `sudo_executor.py` |
-| **GPU Utilities** | Hardware detection & diagnostics | `gpu_detection.py`, `system_info.py` |
-| **Benchmarks** | Model performance comparison | `model_comparison.py` |
-| **Tests** | Integration and unit tests | `tests/integration/` |
+| Component             | Purpose                            | Key Files                                 |
+| --------------------- | ---------------------------------- | ----------------------------------------- |
+| **Ollama Backend**    | Production LLM serving             | `ollama_client.py`, `ollama_backend.py`   |
+| **Native Engine**     | Direct PyTorch inference           | `llama_gpu.py`                            |
+| **Unified API**       | Multi-backend FastAPI server       | `unified_api_server.py`                   |
+| **CLI Agent**         | Terminal assistant with Beast Mode | `ai_agent.py`                             |
+| **Desktop GUI**       | GTK3 system tray app               | `ai_assistant_app.py`                     |
+| **Command Execution** | Safe system command handling       | `command_executor.py`, `sudo_executor.py` |
+| **GPU Utilities**     | Hardware detection & diagnostics   | `gpu_detection.py`, `system_info.py`      |
+| **Benchmarks**        | Model performance comparison       | `model_comparison.py`                     |
+| **Tests**             | Integration and unit tests         | `tests/integration/`                      |
 
 ---
 
@@ -1642,11 +1677,11 @@ docker compose down
 - **Throughput**: 600+ requests/minute
 
 ### AWS Instance Performance
-| Instance Type | GPUs | Performance | Memory | Cost/Hour |
-|---------------|------|-------------|---------|-----------|
-| p3.2xlarge    | 1 V100 | 35-45 tok/s | 16GB | $3.06 |
-| p3.8xlarge    | 4 V100 | 140-180 tok/s | 64GB | $12.24 |
-| g4dn.xlarge   | 1 T4 | 25-35 tok/s | 16GB | $0.526 |
+| Instance Type | GPUs   | Performance   | Memory | Cost/Hour |
+| ------------- | ------ | ------------- | ------ | --------- |
+| p3.2xlarge    | 1 V100 | 35-45 tok/s   | 16GB   | $3.06     |
+| p3.8xlarge    | 4 V100 | 140-180 tok/s | 64GB   | $12.24    |
+| g4dn.xlarge   | 1 T4   | 25-35 tok/s   | 16GB   | $0.526    |
 
 Run benchmarks:
 ```bash
@@ -2396,15 +2431,15 @@ Core files (kept in root):
 
 ### Directory Purposes
 
-| Directory | Purpose |
-|-----------|---------|
-| `bin/` | Executable launchers and entry points |
-| `config/` | Configuration files and settings |
-| `docs/` | All documentation organized by topic |
-| `docker/` | Container images and orchestration |
-| `scripts/` | Automation and utility scripts |
-| `share/` | Shared resources (icons, desktop files) |
-| `src/` | Main source code |
-| `tests/` | Automated and manual tests |
-| `tools/` | Development and debugging tools |
+| Directory  | Purpose                                 |
+| ---------- | --------------------------------------- |
+| `bin/`     | Executable launchers and entry points   |
+| `config/`  | Configuration files and settings        |
+| `docs/`    | All documentation organized by topic    |
+| `docker/`  | Container images and orchestration      |
+| `scripts/` | Automation and utility scripts          |
+| `share/`   | Shared resources (icons, desktop files) |
+| `src/`     | Main source code                        |
+| `tests/`   | Automated and manual tests              |
+| `tools/`   | Development and debugging tools         |
 
