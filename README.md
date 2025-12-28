@@ -1111,11 +1111,8 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Install Ollama (if not already installed)
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Pull a model
-ollama pull qwen3:4b
+# Download Qwen3 model (if needed)
+# Model loading handled automatically by the application
 
 # Run diagnostics
 python3 tools/gpu_diagnostics.py
@@ -1193,21 +1190,13 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-#### 3. Install Ollama
+#### 3. Download Model (if needed)
+
+The application can work with local Qwen3 models. Model management is handled by the application itself - no separate model server needed.
 
 ```bash
-# Download and install Ollama
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Start Ollama service
-sudo systemctl start ollama
-sudo systemctl enable ollama
-
-# Verify installation
-ollama list
-
-# Pull recommended model
-ollama pull qwen3:4b              # Fast with thinking mode, 2.5GB
+# Models are loaded directly by PyTorch
+# No additional installation required
 ```
 
 #### 4. Configure Environment (AMD GPU only)
@@ -1261,16 +1250,11 @@ update-desktop-database ~/.local/share/applications/
 # Run GPU diagnostics
 python3 tools/gpu_diagnostics.py
 
-# Test Ollama connection
-python3 -c "
-from src.backends.ollama import OllamaClient
-client = OllamaClient()
-print('✅ Ollama available' if client.is_available() else '❌ Ollama unavailable')
-print('Models:', [m['name'] for m in client.list_models()])
-"
-
 # Test AI agent
 python3 tools/ai_agent.py "Hello, test connection"
+
+# Check PyTorch GPU availability
+python3 -c "import torch; print('GPU available:', torch.cuda.is_available())"
 ```
 
 ---
@@ -1280,14 +1264,9 @@ python3 tools/ai_agent.py "Hello, test connection"
 ```
 Llama-GPU/
 ├── 📁 src/                           # Core Python package
-│   ├── backends/
-│   │   └── ollama/                  # Ollama integration
-│   │       ├── __init__.py          # Package exports
-│   │       ├── ollama_backend.py    # Backend adapter
-│   │       └── ollama_client.py     # HTTP REST client
 │   ├── utils/
-│   │   ├── gpu_detection.py         # AMD gfx1030 safeguards
-│   │   └── system_info.py           # ROCm/CUDA detection
+│   │   ├── gpu_detection.py         # GPU detection and setup
+│   │   └── system_info.py           # System diagnostics
 │   ├── llama_gpu.py                 # Native LLM engine
 │   └── unified_api_server.py        # Multi-backend FastAPI server
 │
@@ -1321,7 +1300,7 @@ Llama-GPU/
 │
 ├── 📁 scripts/                       # Automation
 │   ├── setup.sh                     # Main setup script
-│   └── start_api_server.sh          # API launcher
+│   └── launcher scripts             # Application launchers
 │
 ├── 📁 examples/                      # Usage examples
 ├── 🐳 Dockerfile                     # Container image
@@ -1336,9 +1315,12 @@ Llama-GPU/
 
 | Component             | Purpose                            | Key Files                                 |
 | --------------------- | ---------------------------------- | ----------------------------------------- |
-| **Ollama Backend**    | Production LLM serving             | `ollama_client.py`, `ollama_backend.py`   |
-| **Native Engine**     | Direct PyTorch inference           | `llama_gpu.py`                            |
-| **Unified API**       | Multi-backend FastAPI server       | `unified_api_server.py`                   |
+| **AI Model**          | Qwen3 model inference              | Model files (loaded by PyTorch)           |
+| **CLI Agent**         | Terminal assistant with features   | `ai_agent.py`                             |
+| **Desktop GUI**       | GTK3 system tray app               | `ai_assistant_app.py`                     |
+| **Command Execution** | Safe system command handling       | `command_executor.py`, `sudo_executor.py` |
+| **GPU Utilities**     | Hardware detection & diagnostics   | `gpu_detection.py`, `system_info.py`      |
+| **Tests**             | Security and integration tests     | `tests/integration/`, `test_*.py`         |
 | **CLI Agent**         | Terminal assistant with Beast Mode | `ai_agent.py`                             |
 | **Desktop GUI**       | GTK3 system tray app               | `ai_assistant_app.py`                     |
 | **Command Execution** | Safe system command handling       | `command_executor.py`, `sudo_executor.py` |
@@ -1348,512 +1330,84 @@ Llama-GPU/
 
 ---
 
-## 📡 API Documentation
+## 🚀 Usage
 
-### REST Endpoints
+### CLI Interface
 
-#### Health Check
-```http
-GET /healthz
-```
-
-**Response:**
-```json
-{
-  "status": "ok",
-  "backends": ["ollama", "llama-gpu"]
-}
-```
-
-#### List Backends
-```http
-GET /v1/backends
-```
-
-**Response:**
-```json
-{
-  "backends": {
-    "ollama": {
-      "backend": "ollama",
-      "available": true,
-      "models": ["qwen3:4b"],
-      "default_model": "qwen3:4b"
-    }
-  },
-  "active": "ollama"
-}
-```
-
-#### Text Completion
-```http
-POST /v1/completions
-Content-Type: application/json
-
-{
-  "prompt": "Explain quantum computing",
-  "model": "qwen3:4b",
-  "max_tokens": 100,
-  "temperature": 0.7,
-  "backend": "ollama"
-}
-```
-
-**Response:**
-```json
-{
-  "id": "cmpl-1699123456",
-  "object": "text_completion",
-  "created": 1699123456,
-  "model": "qwen3:4b",
-  "backend": "ollama",
-  "choices": [
-    {
-      "text": "Quantum computing uses quantum bits...",
-      "index": 0,
-      "logprobs": null,
-      "finish_reason": "stop"
-    }
-  ]
-}
-```
-
-#### Chat Completion
-```http
-POST /v1/chat/completions
-Content-Type: application/json
-
-{
-  "model": "qwen3:4b",
-  "messages": [
-    {"role": "system", "content": "You are a helpful assistant."},
-    {"role": "user", "content": "What is AI?"}
-  ],
-  "max_tokens": 150,
-  "temperature": 0.7
-}
-```
-
-**Response:**
-```json
-{
-  "id": "chatcmpl-1699123456",
-  "object": "chat.completion",
-  "created": 1699123456,
-  "model": "qwen3:4b",
-  "backend": "ollama",
-  "choices": [
-    {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "AI (Artificial Intelligence) refers to..."
-      },
-      "finish_reason": "stop"
-    }
-  ]
-}
-```
-
-#### Switch Backend
-```http
-POST /v1/backend/switch
-Content-Type: application/json
-
-{
-  "backend": "llama-gpu"
-}
-```
-
-### Python SDK Usage
-
-```python
-from src.backends.ollama import OllamaClient, OllamaBackend
-
-# Direct client usage
-client = OllamaClient("http://localhost:11434")
-
-# Check availability
-if client.is_available():
-    print("✅ Ollama is ready")
-
-    # List models
-    models = client.list_models()
-    for model in models:
-        print(f"- {model['name']}: {model.get('size', 0) / 1e9:.2f} GB")
-
-    # Generate text (streaming)
-    for chunk in client.generate(
-        model="qwen3:4b",
-        prompt="Write a haiku about coding",
-        stream=True
-    ):
-        print(chunk, end="", flush=True)
-
-    # Chat with history
-    messages = [
-        {"role": "user", "content": "What is Python?"},
-        {"role": "assistant", "content": "Python is a programming language..."},
-        {"role": "user", "content": "Show me an example"}
-    ]
-    response = client.chat(model="qwen3:4b", messages=messages)
-    print(response)
-
-    # Quick chat for faster responses (optimized thinking)
-    result = client.quick_chat(
-        model="qwen3:4b",
-        messages=[{"role": "user", "content": "Capital of France?"}]
-    )
-    print(result)  # "Paris" in ~3 seconds
-
-# Backend adapter usage
-backend = OllamaBackend(default_model="qwen3:4b")
-if backend.initialize():
-    # Simple inference
-    result = backend.infer("Explain recursion", max_tokens=200)
-    print(result)
-
-    # Get model info
-    info = backend.get_model_info()
-    print(f"Model: {info.get('modelfile')}")
-    print(f"Parameters: {info.get('parameters')}")
-```
-
-### CLI Usage Examples
+The command-line interface provides quick access to the AI assistant:
 
 ```bash
-# Interactive chat
-python3 tools/ai_agent.py --interactive
+# Basic usage
+python3 tools/ai_agent.py "what is my ubuntu version"
 
-# Single query
-python3 tools/ai_agent.py "What is the weather like?"
+# Interactive mode
+python3 tools/ai_agent.py -i
 
-# Beast Mode (autonomous)
-python3 tools/ai_agent.py --beast-mode "Update the system documentation"
+# Beast Mode (autonomous task completion)
+python3 tools/ai_agent.py --beast-mode "analyze system performance"
+
+# Disable command execution (chat only)
+python3 tools/ai_agent.py --no-execute "tell me about python"
 
 # Use specific model
-python3 tools/ai_agent.py -m qwen3:4b "Explain quantum entanglement"
-
-# Disable command execution
-python3 tools/ai_agent.py --no-execute "Safe chat only"
-
-# Simple CLI tool
-python3 tools/llm_cli.py -i  # Interactive mode
-python3 tools/llm_cli.py "Hello, world!"  # Direct query
-python3 tools/llm_cli.py --list  # List models
-python3 tools/llm_cli.py --status  # System status
+python3 tools/ai_agent.py -m qwen3:4b "hello"
 ```
 
----
+### Desktop GUI
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Python 3.8+
-- CUDA 11.8+ (for NVIDIA GPUs) or ROCm 5.0+ (for AMD GPUs)
-- 8GB+ RAM (16GB+ recommended for larger models)
-
-### Installation
-
-1. **Clone and setup**:
-
-  ```bash
-  git clone https://github.com/hkevin01/Llama-GPU.git
-  cd Llama-GPU
-  ```
-
-2. **Install dependencies**:
-
-  ```bash
-  pip install -r requirements.txt
-  ```
-
-3. **Install Ollama and pull a model**:
-
-  ```bash
-  curl -fsSL https://ollama.com/install.sh | sh
-  ollama pull qwen3:4b
-  ```
-
-4. **Choose your backend setup**:
-
-  ```bash
-  # For local development with CPU/CUDA
-  ./scripts/setup_local.sh
-
-  # For AWS GPU instances
-  ./scripts/setup_aws.sh
-  ```
-
-### Basic Usage
-
-```python
-from src.llama_gpu import LlamaGPU
-
-# Initialize with automatic backend detection
-llama = LlamaGPU("path/to/your/model", prefer_gpu=True)
-
-# Single inference
-result = llama.infer("Explain quantum computing in simple terms")
-print(result)
-
-# Batch processing
-prompts = ["Hello world", "How does AI work?", "Tell me a joke"]
-results = llama.batch_infer(prompts, batch_size=2)
-for prompt, response in zip(prompts, results):
-    print(f"Q: {prompt}\nA: {response}\n")
-
-# Streaming inference for real-time responses
-print("Streaming response:")
-for token in llama.stream_infer("Write a short story about space"):
-    print(token, end="", flush=True)
-```
-
-### Multi-GPU Configuration
-
-```python
-from src.multi_gpu import MultiGPUManager, GPUConfig
-
-# Configure multi-GPU setup
-config = GPUConfig(
-    strategy="tensor_parallel",    # or "pipeline_parallel"
-    num_gpus=4,
-    load_balancer="round_robin"
-)
-
-# Initialize multi-GPU manager
-manager = MultiGPUManager(config)
-
-# High-performance generation
-result = manager.generate(
-    prompt="Explain machine learning algorithms",
-    max_tokens=500,
-    temperature=0.7,
-    top_p=0.9
-)
-```
-
-### Production API Server
-
-Start the FastAPI server with monitoring:
+Launch the GTK3 system tray application:
 
 ```bash
-# Start API server
-./scripts/start_api.sh
+# Start the GUI
+python3 tools/gui/ai_assistant_app.py
 
-# Start React dashboard (in another terminal)
-(cd llama-gui && npm run start:react)
+# Or use the launcher
+python3 tools/gui/llm_launcher_gui.py
 ```
 
-**OpenAI-Compatible API Usage:**
+The app will appear in your system tray with these features:
+- System tray icon with menu
+- Chat window for conversations
+- Automatic command execution
+- Direct system queries (disk space, version, etc.)
+- Safe sudo handling with password prompts
 
-```bash
-# Text completion
-curl -X POST "http://localhost:8000/v1/completions" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your-api-key" \
-  -d '{
-    "model": "llama-base",
-    "prompt": "The future of AI is",
-    "max_tokens": 100,
-    "temperature": 0.7
-  }'
+### Command Execution Examples
 
-# Chat completion
-curl -X POST "http://localhost:8000/v1/chat/completions" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "llama-base",
-    "messages": [
-      {"role": "user", "content": "What is machine learning?"}
-    ],
-    "max_tokens": 150
-  }'
+The AI assistant can safely execute commands:
+
+```
+You: what is my ubuntu version
+🔧 Executing: lsb_release -a
+✅ Ubuntu 24.04.3 LTS (noble)
+
+You: how much disk space do I have
+🔧 Executing: df -h
+✅ Filesystem      Size  Used Avail Use%
+    /dev/nvme0n1p2  458G  123G  312G  29%
+
+You: install neofetch
+🔐 This requires sudo. Enter password:
+🔧 Executing: sudo apt install neofetch
+✅ Package installed successfully
 ```
 
-### Quantization for Memory Efficiency
+### Direct Execution Patterns
 
-```python
-from src.quantization import QuantizationManager, QuantizationConfig
+The system automatically detects common queries and executes them instantly:
 
-# Configure quantization
-config = QuantizationConfig(
-    quantization_type="int8",      # or "fp16"
-    dynamic=True,                  # Dynamic quantization
-    memory_efficient=True
-)
-
-# Quantize model
-quant_manager = QuantizationManager(config)
-quantized_model = quant_manager.quantize_model(model, "optimized_model")
-
-# Use quantized model (50%+ memory reduction)
-from src.quantization import QuantizedInference
-inference = QuantizedInference(quantized_model, config)
-result = inference.generate("Summarize this text", max_tokens=100)
-```
-
----
-
-## 🎛️ React Dashboard
-
-Launch the monitoring dashboard:
-
-```bash
-python scripts/run_gui_dashboard.py
-```
-
-**Dashboard Features:**
-- **Real-time Metrics**: GPU usage, memory consumption, throughput
-- **Request Monitoring**: Active requests, queue status, response times
-- **Model Management**: Load/unload models, configuration updates
-- **Performance Analytics**: Historical charts, benchmark results
-- **System Health**: Backend status, resource availability
-
-**Access at**: `http://localhost:3000`
-
----
-
-## 🐳 Docker Deployment
-
-### Quick Docker Setup
-
-```bash
-# Build container
-docker build -t llama-gpu .
-
-# Run with GPU support
-docker run --gpus all -p 8000:8000 -p 3000:3000 llama-gpu
-
-# Run CPU-only
-docker run -p 8000:8000 -p 3000:3000 llama-gpu
-```
-
-### Docker Compose (Dev)
-
-```bash
-# Start full stack (API + Dashboard)
-docker compose up --build
-
-# Stop
-docker compose down
-```
-
----
-
-## ⚡ Performance Benchmarks
-
-### Qwen3 Quick Thinking Performance
-
-Our optimized Qwen3:4b model with quick thinking mode provides responsive performance across hardware:
-
-| Hardware Configuration | GPU        | VRAM | Response Time | Tokens/sec | Use Case           |
-| ---------------------- | ---------- | ---- | ------------- | ---------- | ------------------ |
-| Desktop (AMD)          | RX 5600 XT | 6GB  | 3-7s          | 15-20      | Personal use       |
-| Desktop (NVIDIA)       | RTX 3060   | 12GB | 2-5s          | 45-60      | Development        |
-| Server (AMD)           | MI100      | 32GB | 1.5-3s        | 80-100     | Production         |
-| Laptop (CPU fallback)  | Intel i7   | -    | 10-15s        | 3-5        | Emergency fallback |
-
-**Optimization Impact:**
-- **Temperature 0.4**: 2-3x faster responses vs default 0.7
-- **Brief system prompt**: 30% reduction in verbose thinking
-- **max_tokens 600**: Optimal balance for thinking + answer
-- **top_p 0.8**: Focused sampling reduces wandering
-
-### Real-World Query Performance
-
-Based on actual tests with qwen3:4b + quick_chat:
-
-| Query Type           | Example                       | Response Time | Quality |
-| -------------------- | ----------------------------- | ------------- | ------- |
-| Simple facts         | "Capital of France?"          | ~3.2s         | ★★★★★   |
-| Math calculations    | "What is 15 × 7?"             | ~5.1s         | ★★★★★   |
-| List generation      | "Name 3 planets"              | ~6.8s         | ★★★★☆   |
-| Command suggestions  | "How to list files in Linux?" | ~4.0s         | ★★★★★   |
-| Code snippets        | "Python function to sort"     | ~8.2s         | ★★★★☆   |
-| Complex explanations | "Explain machine learning"    | ~12.5s        | ★★★★☆   |
-
-**Baseline Comparison** (without optimizations):
-- Default Qwen3 settings: 8-16s for simple queries
-- **Improvement**: 2-3x faster with maintained accuracy
-- **Trade-off**: Slightly less verbose responses (desired for quick answers)
-
----
-
-## 📚 Documentation
-
-### Core Documentation
-- **[Installation Guide](docs/installation_guide.md)** - Complete setup instructions
-- **[API Documentation](docs/api_documentation.md)** - REST API reference
-- **[Configuration Guide](docs/config_docs.md)** - Backend and model configuration
-- **[Performance Tuning](docs/benchmarks.md)** - Optimization strategies
-
-### Development Resources
-- **[Contributing Guide](docs/CONTRIBUTING.md)** - Development workflow
-- **[Design Specification](docs/design_specification.md)** - Architecture overview
-- **[Code of Conduct](docs/CODE_OF_CONDUCT.md)** - Community guidelines
-- **[Changelog](docs/CHANGELOG.md)** - Version history
-
-### Examples & Tutorials
-- **[Jupyter Notebooks](examples/)** - Interactive tutorials
-- **[Example Scripts](scripts/)** - Ready-to-run examples
-- **[Use Cases](docs/examples.md)** - Real-world applications
-
----
-
-## 🛠️ Development
-
-### Local Development Setup
-
-```bash
-# Clone repository
-git clone https://github.com/hkevin01/Llama-GPU.git
-cd Llama-GPU
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
-
-# Install development dependencies
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
-
-# Run tests
-pytest tests/ -v
-
-# Start development servers
-python src/api_server.py &          # API server on :8000
-python scripts/run_gui_dashboard.py  # Dashboard on :3000
-```
-
-### Testing
-
-```bash
-# Run all tests
-pytest tests/ -v --cov=src/
-
-# Test specific components
-pytest tests/test_api_server.py -v
-pytest tests/test_multi_gpu.py -v
-pytest tests/test_quantization.py -v
-
-# Performance tests
-pytest tests/test_benchmarks.py -v --benchmark-only
-```
-
-### Code Quality
-
-```bash
-# Linting
-flake8 src/ tests/
-black src/ tests/
-
-# Type checking
-mypy src/
-
-# Security audit
-bandit -r src/
-```
+| User Query               | Command Executed       | Description          |
+| ------------------------ | ---------------------- | -------------------- |
+| "what ubuntu version"    | `lsb_release -a`       | OS version info      |
+| "how much disk space"    | `df -h`                | Disk usage           |
+| "show memory usage"      | `free -h`              | RAM usage            |
+| "what's my ip"           | `hostname -I`          | IP address           |
+| "who am i"               | `whoami`               | Current user         |
+| "check internet"         | `ping -c 1 google.com` | Network connectivity |
+| "what gpu do i have"     | `lspci \| grep VGA`    | GPU information      |
+| "show running processes" | `ps aux \| head -20`   | Process list         |
+| "what kernel version"    | `uname -r`             | Kernel version       |
+| "show cpu info"          | `lscpu`                | CPU details          |
 
 ---
 
