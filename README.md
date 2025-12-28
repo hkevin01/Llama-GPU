@@ -68,7 +68,7 @@ graph TB
     end
 
     subgraph "Backend Engines"
-        OLLAMA[Ollama Backend<br/>qwen3, phi4-mini]
+        OLLAMA[Ollama Backend<br/>qwen3:4b]
         LLAMA[LlamaGPU Engine<br/>Native Implementation]
     end
 
@@ -189,7 +189,7 @@ flowchart LR
 *Why: Production-ready, optimized model serving*
 
 - **Technology**: HTTP REST client with streaming support
-- **Models Supported**: qwen3:4b (2.5GB), phi4-mini (2.5GB), llama3, mistral
+- **Models Supported**: qwen3:4b (2.5GB), llama3, mistral, and other Ollama-compatible models
 - **Performance**: 3-7s response time with Qwen3 Quick Thinking
 - **Implementation**: Custom OllamaClient with connection pooling
 
@@ -797,7 +797,7 @@ def test_command_execution():
 **Example 1: CLI Agent**
 ```bash
 $ python3 tools/ai_agent.py "check disk space"
-🤖 phi4-mini:3.8b thinking...
+🤖 qwen3:4b thinking...
 
 Let me check your disk usage:
 
@@ -890,7 +890,7 @@ PYTORCH_ROCM_ARCH=gfx1030             # Explicit architecture
 *Why: Choose the right model for your use case*
 
 - **Metrics**: Response time, tokens/sec, throughput, memory usage
-- **Models**: phi4-mini, deepseek-r1, llama3, custom models
+- **Models**: qwen3:4b, llama3, mistral, and other Ollama-compatible models
 - **Output**: JSON reports, formatted tables, graphs
 - **Automation**: CI/CD integration, performance regression detection
 
@@ -994,12 +994,12 @@ PYTORCH_ROCM_ARCH=gfx1030             # Explicit architecture
 
 #### Tested Configurations
 
-| Hardware | GPU        | VRAM | Model          | Performance                     |
-| -------- | ---------- | ---- | -------------- | ------------------------------- |
-| Desktop  | RX 5600 XT | 6GB  | phi4-mini:3.8b | 15-20 tokens/sec (CPU fallback) |
-| Desktop  | RTX 3060   | 12GB | phi4-mini:3.8b | 45-60 tokens/sec                |
-| Server   | MI100      | 32GB | deepseek-r1:7b | 80-100 tokens/sec               |
-| Laptop   | Intel i7   | -    | phi4-mini:3.8b | 3-5 tokens/sec (CPU)            |
+| Hardware | GPU        | VRAM | Model    | Performance                     |
+| -------- | ---------- | ---- | -------- | ------------------------------- |
+| Desktop  | RX 5600 XT | 6GB  | qwen3:4b | 15-20 tokens/sec (CPU fallback) |
+| Desktop  | RTX 3060   | 12GB | qwen3:4b | 45-60 tokens/sec                |
+| Server   | MI100      | 32GB | qwen3:4b | 80-100 tokens/sec               |
+| Laptop   | Intel i7   | -    | qwen3:4b | 3-5 tokens/sec (CPU)            |
 
 ---
 
@@ -1023,7 +1023,7 @@ pip install -r requirements.txt
 curl -fsSL https://ollama.com/install.sh | sh
 
 # Pull a model
-ollama pull phi4-mini:3.8b
+ollama pull qwen3:4b
 
 # Run diagnostics
 python3 tools/gpu_diagnostics.py
@@ -1114,9 +1114,8 @@ sudo systemctl enable ollama
 # Verify installation
 ollama list
 
-# Pull recommended models
-ollama pull phi4-mini:3.8b        # Fast, 2.5GB
-ollama pull deepseek-r1:7b        # Better reasoning, 4.7GB
+# Pull recommended model
+ollama pull qwen3:4b              # Fast with thinking mode, 2.5GB
 ```
 
 #### 4. Configure Environment (AMD GPU only)
@@ -1286,8 +1285,8 @@ GET /v1/backends
     "ollama": {
       "backend": "ollama",
       "available": true,
-      "models": ["phi4-mini:3.8b", "deepseek-r1:7b"],
-      "default_model": "phi4-mini:3.8b"
+      "models": ["qwen3:4b"],
+      "default_model": "qwen3:4b"
     }
   },
   "active": "ollama"
@@ -1301,7 +1300,7 @@ Content-Type: application/json
 
 {
   "prompt": "Explain quantum computing",
-  "model": "phi4-mini:3.8b",
+  "model": "qwen3:4b",
   "max_tokens": 100,
   "temperature": 0.7,
   "backend": "ollama"
@@ -1314,7 +1313,7 @@ Content-Type: application/json
   "id": "cmpl-1699123456",
   "object": "text_completion",
   "created": 1699123456,
-  "model": "phi4-mini:3.8b",
+  "model": "qwen3:4b",
   "backend": "ollama",
   "choices": [
     {
@@ -1333,7 +1332,7 @@ POST /v1/chat/completions
 Content-Type: application/json
 
 {
-  "model": "phi4-mini:3.8b",
+  "model": "qwen3:4b",
   "messages": [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": "What is AI?"}
@@ -1349,7 +1348,7 @@ Content-Type: application/json
   "id": "chatcmpl-1699123456",
   "object": "chat.completion",
   "created": 1699123456,
-  "model": "phi4-mini:3.8b",
+  "model": "qwen3:4b",
   "backend": "ollama",
   "choices": [
     {
