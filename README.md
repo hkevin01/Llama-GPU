@@ -120,9 +120,6 @@ graph TB
     style CPU fill:#4c1d95,stroke:#a78bfa,color:#fff
 ```
 
-
-
-```mermaid
 ### User Interaction Flow
 
 **Why This Matters:** Users need a responsive, conversational AI that can both chat naturally and execute commands safely when needed.
@@ -884,28 +881,6 @@ $ sudo apt update && sudo apt upgrade -y"
 
 ---
 
-### 🎮 AMD ROCm Optimization
-
-#### **GPU Detection & Safeguards**
-*Why: AMD RDNA1/RDNA2 GPUs need special handling*
-
-- **Problematic GPUs**: gfx1030 (RX 5600 XT), gfx1031, gfx1032
-- **Detection Method**: Parse `rocminfo`, check environment variables
-- **Safeguards**: Automatic CPU fallback, warning messages
-- **Override**: `--force-gpu-unsafe` flag for power users
-
-**Environment Variables:**
-```bash
-HSA_OVERRIDE_GFX_VERSION=10.3.0       # RDNA architecture compatibility
-MIOPEN_DEBUG_CONV_IMPLICIT_GEMM=1     # Fix Conv2d operations
-PYTORCH_ROCM_ARCH=gfx1030             # Explicit architecture
-```
-
-**Recommended Configuration:**
-- ROCm 5.2 + PyTorch 1.13.1 for RDNA1/RDNA2
-- ROCm 6.x for RDNA3 (gfx1100+)
-- CPU backend for unsupported architectures
-
 ### 📊 Benchmarking & Diagnostics
 
 #### **Model Comparison Tool**
@@ -1079,19 +1054,18 @@ def execute_sudo(command: str):
 - **Python**: 3.10+
 
 #### Recommended for GPU
-- **GPU**: NVIDIA (Compute 7.0+) or AMD (RDNA2+)
+- **GPU**: NVIDIA (Compute 7.0+)
 - **VRAM**: 6GB+ for small models, 12GB+ for large models
 - **RAM**: 16GB+
-- **CUDA**: 11.8+ (NVIDIA) or ROCm 5.2+ (AMD)
+- **CUDA**: 11.8+ (NVIDIA)
 
 #### Tested Configurations
 
-| Hardware | GPU        | VRAM | Model    | Performance                     |
-| -------- | ---------- | ---- | -------- | ------------------------------- |
-| Desktop  | RX 5600 XT | 6GB  | qwen3:4b | 15-20 tokens/sec (CPU fallback) |
-| Desktop  | RTX 3060   | 12GB | qwen3:4b | 45-60 tokens/sec                |
-| Server   | MI100      | 32GB | qwen3:4b | 80-100 tokens/sec               |
-| Laptop   | Intel i7   | -    | qwen3:4b | 3-5 tokens/sec (CPU)            |
+| Hardware | GPU      | VRAM | Model    | Performance          |
+| -------- | -------- | ---- | -------- | -------------------- |
+| Desktop  | RTX 3060 | 12GB | qwen3:4b | 45-60 tokens/sec     |
+| Desktop  | RTX 4090 | 24GB | qwen3:4b | 80-100 tokens/sec    |
+| Laptop   | Intel i7 | -    | qwen3:4b | 3-5 tokens/sec (CPU) |
 
 ---
 
@@ -1132,24 +1106,6 @@ sudo apt install -y \
     build-essential curl git
 ```
 
-**For AMD GPU (ROCm 5.2):**
-```bash
-# Add ROCm repository
-wget https://repo.radeon.com/rocm/rocm.gpg.key -O - | sudo apt-key add -
-echo 'deb [arch=amd64] https://repo.radeon.com/rocm/apt/5.2/ ubuntu main' | \
-    sudo tee /etc/apt/sources.list.d/rocm.list
-
-# Install ROCm
-sudo apt update
-sudo apt install -y rocm-dev rocminfo
-
-# Add user to video group
-sudo usermod -a -G video $USER
-
-# Reboot required
-sudo reboot
-```
-
 **For NVIDIA GPU (CUDA 11.8):**
 ```bash
 # Install CUDA toolkit
@@ -1177,9 +1133,6 @@ pip install --upgrade pip setuptools wheel
 # For NVIDIA CUDA:
 pip install torch==2.0.1+cu118 -f https://download.pytorch.org/whl/torch_stable.html
 
-# For AMD ROCm 5.2:
-pip install torch==1.13.1+rocm5.2 -f https://download.pytorch.org/whl/rocm5.2/torch_stable.html
-
 # For CPU only:
 pip install torch==2.0.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
@@ -1199,28 +1152,7 @@ The application can work with local Qwen3 models. Model management is handled by
 # No additional installation required
 ```
 
-#### 4. Configure Environment (AMD GPU only)
-
-Create `.env` file in project root:
-
-```bash
-# For AMD RX 5600 XT (gfx1030)
-cat > .env << EOF
-HSA_OVERRIDE_GFX_VERSION=10.3.0
-MIOPEN_DEBUG_CONV_IMPLICIT_GEMM=1
-MIOPEN_FIND_ENFORCE=3
-PYTORCH_ROCM_ARCH=gfx1030
-GPU_SAFEGUARD=true
-EOF
-
-# For AMD RX 6000 series (gfx1031/1032)
-# Change PYTORCH_ROCM_ARCH=gfx1031 or gfx1032
-
-# Load environment
-source .env
-```
-
-#### 5. Desktop GUI Installation
+#### 4. Desktop GUI Installation
 
 ```bash
 # Install desktop entry
