@@ -68,11 +68,10 @@ Before installing, ensure you have:
                     gir1.2-appindicator3-0.1 gir1.2-notify-0.7
    ```
 
-3. **Ollama** installed and running:
+3. **CUDA Toolkit** (for NVIDIA GPU acceleration):
    ```bash
-   curl -fsSL https://ollama.com/install.sh | sh
-   ollama serve  # Start in background
-   ollama pull phi4:3.8b  # Download the model
+   # CUDA 11.8+ recommended
+   # Download from: https://developer.nvidia.com/cuda-downloads
    ```
 
 4. **Project Dependencies**:
@@ -80,7 +79,7 @@ Before installing, ensure you have:
    # Create and activate virtual environment
    python3 -m venv venv
    source venv/bin/activate
-   
+
    # Install requirements
    pip install -r requirements.txt
    ```
@@ -101,10 +100,10 @@ Before installing, ensure you have:
    ```bash
    # Check desktop file
    cat ~/.local/share/applications/llama-gpu-assistant.desktop
-   
+
    # Check icon
    ls -l ~/.local/share/icons/llama-assistant.svg
-   
+
    # Test launcher directly
    ./bin/llama-assistant
    ```
@@ -165,13 +164,15 @@ gtk-launch llama-gpu-assistant
 
 On first launch, the application will:
 
-1. **Check Ollama Connection**
-   - Verifies Ollama is running on `http://localhost:11434`
-   - Shows connection status in the UI
+1. **Initialize Qwen Model**
+   - Loads Qwen3:4b model from HuggingFace
+   - Automatically detects GPU/CUDA availability
+   - Falls back to CPU if GPU unavailable
 
-2. **Load Model**
-   - Uses `phi4:3.8b` by default
-   - You can change models in the settings
+2. **Check System Requirements**
+   - Verifies PyTorch installation
+   - Tests GPU acceleration status
+   - Displays hardware info in the UI
 
 3. **Display System Tray Icon**
    - Look for the icon in your system tray
@@ -180,9 +181,9 @@ On first launch, the application will:
 ### Application Features
 
 **Chat Window**
-- AI-powered conversations with Phi4-Mini
+- AI-powered conversations with Qwen3 model
 - Command execution suggestions
-- Real-time streaming responses
+- Real-time response generation
 - Message history
 
 **System Tray Integration**
@@ -191,7 +192,7 @@ On first launch, the application will:
 - Minimize to tray on close
 
 **Command Execution**
-- Safe command validator
+- Three-tier safety validator
 - Sudo command support (with password prompt)
 - Real-time command output
 - Confirmation prompts for dangerous operations
@@ -288,23 +289,29 @@ source venv/bin/activate
 python3 -c "import gi; gi.require_version('Gtk', '3.0'); from gi.repository import Gtk"
 ```
 
-### Ollama Connection Failed
+### Model Loading Failed
 
-**Solution 1: Start Ollama**
+**Solution 1: Check CUDA/GPU**
 ```bash
-ollama serve
+# Verify CUDA is available
+python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
+
+# Check GPU memory
+nvidia-smi
 ```
 
-**Solution 2: Check Ollama Status**
+**Solution 2: Check PyTorch Installation**
 ```bash
-curl http://localhost:11434/api/tags
+source venv/bin/activate
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 ```
 
-**Solution 3: Verify Model**
+**Solution 3: Use CPU Fallback**
 ```bash
-ollama list
-# If phi4:3.8b not listed:
-ollama pull phi4:3.8b
+# Qwen model will automatically use CPU if GPU unavailable
+# Expect slower performance (3-5 tokens/sec)
+export CUDA_VISIBLE_DEVICES=""
+python tools/gui/ai_assistant_app.py
 ```
 
 ### Command Execution Not Working

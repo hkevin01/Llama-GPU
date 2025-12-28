@@ -221,7 +221,6 @@ python3 tools/ai_agent.py [OPTIONS] [PROMPT]
 
 Options:
   -h, --help           Show help message
-  -m MODEL            Specify Ollama model (default: phi4-mini:3.8b)
   -b, --beast-mode    Enable Beast Mode autonomous completion
   -i, --interactive   Start interactive session
   --no-execute        Disable command execution (suggestions only)
@@ -231,8 +230,8 @@ Options:
 ### Examples
 
 ```bash
-# Use a different model
-tools/ai -m deepseek-r1:7b "explain this code"
+# Interactive mode
+tools/ai -i
 
 # Disable execution (suggestions only)
 tools/ai --no-execute "how do I backup files"
@@ -240,8 +239,8 @@ tools/ai --no-execute "how do I backup files"
 # Auto-execute everything (dangerous!)
 tools/ai --auto-execute "show disk usage"
 
-# Beast Mode with specific model
-tools/ai -b -m phi4-mini:3.8b "reorganize project structure"
+# Beast Mode for autonomous task completion
+tools/ai -b "reorganize project structure"
 ```
 
 ## Integration with Existing Tools
@@ -261,33 +260,33 @@ executor = SafeCommandExecutor(
 result = executor.execute("ls -la")
 ```
 
-### Ollama Client
+### Qwen Model
 
-Built on the Ollama backend integration:
+Built on PyTorch with automatic GPU/CPU detection:
 
 ```python
-from src.backends.ollama import OllamaClient
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-client = OllamaClient()
-response = client.chat(
-    model="phi4-mini:3.8b",
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant"},
-        {"role": "user", "content": "Hello!"}
-    ]
+model_name = "Qwen/Qwen2.5-3B-Instruct"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+    device_map="auto"
 )
 ```
 
 ## Comparison: AI Agent vs LLM CLI
 
-| Feature | AI Agent | LLM CLI |
-|---------|----------|---------|
-| Speed | ⚡ Fast (phi4-mini default) | ⚡ Fast (phi4-mini default) |
-| Execution | ✅ Actually executes | ❌ Suggestions only |
-| Safety | 🛡️ Built-in validation | N/A |
-| Beast Mode | ✅ Yes | ❌ No |
-| Interactive | ✅ Yes | ✅ Yes |
-| Context Aware | ✅ Full history | ⚠️ Limited |
+| Feature       | AI Agent                   | LLM CLI                    |
+| ------------- | -------------------------- | -------------------------- |
+| Speed         | ⚡ Fast (phi4-mini default) | ⚡ Fast (phi4-mini default) |
+| Execution     | ✅ Actually executes        | ❌ Suggestions only         |
+| Safety        | 🛡️ Built-in validation      | N/A                        |
+| Beast Mode    | ✅ Yes                      | ❌ No                       |
+| Interactive   | ✅ Yes                      | ✅ Yes                      |
+| Context Aware | ✅ Full history             | ⚠️ Limited                  |
 
 **Use AI Agent when:** You want tasks completed automatically
 **Use LLM CLI when:** You just need information or suggestions
@@ -303,40 +302,40 @@ Using phi4-mini:3.8b (2.5GB model):
 
 ### Model Selection
 
-| Model | Size | Speed | Quality | Use Case |
-|-------|------|-------|---------|----------|
-| phi4-mini:3.8b | 2.5GB | ⚡⚡⚡ | ⭐⭐⭐ | Default, fast |
-| deepseek-r1:7b | 4.7GB | ⚡⚡ | ⭐⭐⭐⭐ | Complex tasks |
-| llama3.1:8b | 4.7GB | ⚡⚡ | ⭐⭐⭐⭐ | Alternative |
-
-Change model with: `tools/ai -m model-name`
+| Model          | Size   | Speed   | Quality   | Use Case              |
+| -------------- | ------ | ------- | --------- | --------------------- |
+| phi4-mini:3.8b | 2.5GB  | ⚡⚡⚡     | ⭐⭐⭐       | Default, fast         |
+| deepseek-r1:7b | 4.7GB  | ⚡⚡      | ⭐⭐⭐⭐      | Complex tasks         |
+| Model          | Size   | Speed   | Quality   | Notes                 |
+| -------        | ------ | ------- | --------- | -------               |
+| Qwen3:4b       | 4GB    | ⚡⚡⚡     | ⭐⭐⭐⭐      | Default, best balance |
 
 ## Troubleshooting
 
-### Ollama Not Running
+### Model Loading Issues
 
 ```bash
-# Check status
-systemctl status ollama
+# Check CUDA availability
+python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
 
-# Start service
-ollama serve
+# Check GPU memory
+nvidia-smi
 
-# Or start manually
-ollama serve &
+# Verify PyTorch installation
+python -c "import torch; print(f'PyTorch: {torch.__version__}')"
 ```
 
-### Model Not Found
+### GPU Not Detected
 
 ```bash
-# List available models
-ollama list
+# Check CUDA installation
+nvcc --version
 
-# Download phi4-mini
-ollama pull phi4-mini:3.8b
+# Reinstall PyTorch with CUDA support
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 
-# Check model info
-ollama show phi4-mini:3.8b
+# Verify GPU is recognized
+python -c "import torch; print(f'GPU count: {torch.cuda.device_count()}')"
 ```
 
 ### Command Executor Not Working
@@ -398,11 +397,11 @@ Add new command extraction patterns in `extract_commands()`:
 ```python
 def extract_commands(self, text: str) -> List[str]:
     commands = []
-    
+
     # Your custom pattern
     for match in re.finditer(r'YOUR_PATTERN', text):
         commands.append(match.group(1))
-    
+
     return commands
 ```
 
@@ -498,8 +497,8 @@ tools/ai --no-execute "task"  # Suggestions only
 
 ## Related Documentation
 
-- [Ollama Integration](./OLLAMA_INTEGRATION.md) - Backend details
-- [Integration Complete](./INTEGRATION_COMPLETE.md) - Full system overview
+- [Project Plan](./PROJECT_PLAN.md) - Roadmap and architecture
+- [Desktop App Guide](./DESKTOP_APP_GUIDE.md) - GTK3 GUI documentation
 - [Command Executor](../tools/execution/command_executor.py) - Safety implementation
 - [Testing Guide](./TESTING_GUIDE.md) - How to test
 
@@ -510,7 +509,7 @@ tools/ai --no-execute "task"  # Suggestions only
 1. Check `/help` in interactive mode
 2. Read this documentation
 3. Review command history `/history`
-4. Check Ollama status: `ollama list`
+4. Check GPU status: `nvidia-smi`
 5. Run diagnostics: `python3 tools/gpu_diagnostics.py`
 
 ### Contributing

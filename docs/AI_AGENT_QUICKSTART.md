@@ -111,13 +111,14 @@ tools/ai "check system health: disk, memory, and load"
 
 ## Tips & Tricks
 
-### Speed It Up
+### Optimize Performance
 ```bash
-# Use phi4-mini (default, fastest)
+# Qwen3:4b is optimized for speed + quality balance
 tools/ai "quick task"
 
-# Use deepseek for complex reasoning
-tools/ai -m deepseek-r1:7b "complex analysis"
+# Ensure GPU acceleration is active
+export CUDA_VISIBLE_DEVICES=0
+tools/ai "task requiring fast inference"
 ```
 
 ### Batch Operations
@@ -143,17 +144,19 @@ tools/ai --auto-execute "safe read-only task"
 
 ## Common Issues
 
-### "Ollama service not running"
+### "Model not loading"
 ```bash
-ollama serve
-# Or start in background
-ollama serve &
+# Check CUDA availability
+python -c "import torch; print(torch.cuda.is_available())"
+
+# Check GPU memory
+nvidia-smi
 ```
 
-### "Model not found"
-```bash
-ollama pull phi4-mini:3.8b
-```
+### "Slow performance"
+- Qwen3:4b requires 6GB+ VRAM for optimal performance
+- CPU fallback is automatic but slower (3-5 tokens/sec)
+- Check GPU is being utilized with `nvidia-smi`
 
 ### "Command executor not available"
 ```bash
@@ -164,10 +167,10 @@ python3 tools/ai_agent.py
 
 ## Model Selection
 
-| Model | Speed | Quality | Use When |
-|-------|-------|---------|----------|
-| **phi4-mini:3.8b** | ⚡⚡⚡ | ⭐⭐⭐ | Default, quick tasks |
-| **deepseek-r1:7b** | ⚡⚡ | ⭐⭐⭐⭐ | Complex reasoning |
+| Model              | Speed | Quality | Use When             |
+| ------------------ | ----- | ------- | -------------------- |
+| **phi4-mini:3.8b** | ⚡⚡⚡   | ⭐⭐⭐     | Default, quick tasks |
+| **deepseek-r1:7b** | ⚡⚡    | ⭐⭐⭐⭐    | Complex reasoning    |
 
 Change with: `tools/ai -m model-name`
 
@@ -195,13 +198,13 @@ $ tools/ai "list files"
 
 ## When to Use What
 
-| Situation | Use | Command |
-|-----------|-----|---------|
-| Quick info | AI Agent | `tools/ai "question"` |
-| Conversation | AI Agent | `tools/ai` |
-| Just chatting | LLM CLI | `tools/llm_cli.py -i` |
-| Complex task | Beast Mode | `tools/ai -b "task"` |
-| Suggestions only | LLM CLI | `tools/llm_cli.py` |
+| Situation        | Use        | Command               |
+| ---------------- | ---------- | --------------------- |
+| Quick info       | AI Agent   | `tools/ai "question"` |
+| Conversation     | AI Agent   | `tools/ai`            |
+| Just chatting    | LLM CLI    | `tools/llm_cli.py -i` |
+| Complex task     | Beast Mode | `tools/ai -b "task"`  |
+| Suggestions only | LLM CLI    | `tools/llm_cli.py`    |
 
 ## Next Steps
 

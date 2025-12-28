@@ -1017,11 +1017,10 @@ Each technology in our stack was chosen for specific technical reasons. Here's w
 
 ### Technology Stack Summary Table
 
-| Layer         | Component             | Purpose            | Key Feature                         | Performance       |
-| ------------- | --------------------- | ------------------ | ----------------------------------- | ----------------- |
-| **Interface** | CLI (argparse + Rich) | Terminal workflows | Interactive prompts, colored output | Instant startup   |
-|               | GTK3 GUI              | Desktop app        | System tray, notifications          | <30MB RAM         |
-|               | React Dashboard       | Web monitoring     | Real-time charts, remote access     | SPA, lazy loading |
+| Layer         | Component             | Purpose            | Key Feature                         | Performance     |
+| ------------- | --------------------- | ------------------ | ----------------------------------- | --------------- |
+| **Interface** | CLI (argparse + Rich) | Terminal workflows | Interactive prompts, colored output | Instant startup |
+|               | GTK3 GUI              | Desktop app        | System tray, notifications          | <30MB RAM       |
 
 
 ### Architectural Patterns
@@ -1370,11 +1369,11 @@ We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.
 8. Open a Pull Request
 
 ### Development Areas
-- 🚀 **Performance**: Backend optimizations, memory efficiency
-- 🎨 **UI/UX**: Dashboard improvements, new visualizations
-- 📊 **Analytics**: Monitoring features, benchmark tools
-- 🔌 **Integrations**: New backend support, cloud providers
-- 📚 **Documentation**: Tutorials, API docs, examples
+- 🚀 **Performance**: GPU optimizations, memory efficiency, inference speed
+- 🔒 **Security**: Command validation enhancements, audit logging
+- 🧪 **Testing**: Test coverage expansion, benchmark tools
+- 🤖 **AI Features**: Multi-model support, context improvements
+- 📚 **Documentation**: Tutorials, examples, troubleshooting guides
 
 ---
 
