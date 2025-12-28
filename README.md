@@ -219,18 +219,31 @@ flowchart TD
     SUDO_EXEC --> OUTPUT
     OUTPUT --> DISPLAY
 
-    style START fill:#1e40af,stroke:#60a5fa,color:#fff
-    style LLM fill:#065f46,stroke:#10b981,color:#fff
-    style PARSE fill:#4c1d95,stroke:#a78bfa,color:#fff
-    style CHECK fill:#92400e,stroke:#fb923c,color:#fff
-    style SUDO fill:#7c2d12,stroke:#f97316,color:#fff
-    style WHITELIST fill:#065f46,stroke:#10b981,color:#fff
-    style BLACKLIST fill:#7f1d1d,stroke:#ef4444,color:#fff
-    style CONFIRM fill:#92400e,stroke:#fbbf24,color:#fff
-    style SAFE_EXEC fill:#065f46,stroke:#34d399,color:#fff
-    style SUDO_EXEC fill:#991b1b,stroke:#f87171,color:#fff
-    style OUTPUT fill:#1e3a8a,stroke:#60a5fa,color:#fff
-    style DISPLAY fill:#581c87,stroke:#a78bfa,color:#fff
+    classDef startStyle fill:#1e40af,stroke:#60a5fa,color:#fff
+    classDef llmStyle fill:#065f46,stroke:#10b981,color:#fff
+    classDef parseStyle fill:#4c1d95,stroke:#a78bfa,color:#fff
+    classDef checkStyle fill:#92400e,stroke:#fb923c,color:#fff
+    classDef sudoStyle fill:#7c2d12,stroke:#f97316,color:#fff
+    classDef whitelistStyle fill:#065f46,stroke:#10b981,color:#fff
+    classDef blacklistStyle fill:#7f1d1d,stroke:#ef4444,color:#fff
+    classDef confirmStyle fill:#92400e,stroke:#fbbf24,color:#fff
+    classDef safeExecStyle fill:#065f46,stroke:#34d399,color:#fff
+    classDef sudoExecStyle fill:#991b1b,stroke:#f87171,color:#fff
+    classDef outputStyle fill:#1e3a8a,stroke:#60a5fa,color:#fff
+    classDef displayStyle fill:#581c87,stroke:#a78bfa,color:#fff
+
+    class START startStyle
+    class LLM llmStyle
+    class PARSE parseStyle
+    class CHECK checkStyle
+    class SUDO sudoStyle
+    class WHITELIST whitelistStyle
+    class BLACKLIST blacklistStyle
+    class CONFIRM confirmStyle
+    class SAFE_EXEC safeExecStyle
+    class SUDO_EXEC sudoExecStyle
+    class OUTPUT outputStyle
+    class DISPLAY displayStyle
 ```
 
 ---
