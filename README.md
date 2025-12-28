@@ -2008,7 +2008,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - **Ollama Team** - Production-ready LLM serving platform
-- **Alibaba Cloud** - Qwen model family with thinking capabilities  
+- **Alibaba Cloud** - Qwen model family with thinking capabilities
 - **PyTorch Team** - Deep learning framework and GPU backends
 - **FastAPI** - Modern async web framework
 - **GTK/GNOME** - Native Linux desktop integration
