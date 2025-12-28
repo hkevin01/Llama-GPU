@@ -10,7 +10,6 @@
 [![Test Coverage](https://codecov.io/gh/hkevin01/Llama-GPU/branch/main/graph/badge.svg)](https://codecov.io/gh/hkevin01/Llama-GPU)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![ROCm](https://img.shields.io/badge/ROCm-5.2+-red.svg)](https://rocmdocs.amd.com/)
 [![Ollama](https://img.shields.io/badge/Ollama-Compatible-green.svg)](https://ollama.ai/)
 
 </div>
@@ -43,16 +42,15 @@
 Running LLMs locally is complex - users face GPU compatibility issues, model management challenges, unsafe command execution, and lack of production-ready APIs. Existing solutions are fragmented: Ollama provides model serving, but lacks interfaces and safe execution; native PyTorch gives control but requires extensive setup; cloud APIs are expensive and have privacy concerns.
 
 **Our Solution:**
-Llama-GPU unifies the best of all worlds - leveraging Ollama's optimized model serving, adding safe command execution with pexpect, providing multiple interfaces (CLI/GUI/API), and optimizing for AMD ROCm GPUs that are often neglected by mainstream tools.
+Llama-GPU unifies the best of all worlds - leveraging Ollama's optimized model serving, adding safe command execution with pexpect, providing multiple interfaces (CLI/GUI/API), and intelligent GPU backend selection with automatic CPU fallback.
 
 ### 🎭 Why Llama-GPU?
 
 | Challenge                 | Why It Matters                                                               | Our Solution                                                                                     | Technical Implementation                  |
 | ------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------- |
 | **Multiple LLM Backends** | Different models/hardware require different engines (Ollama, native PyTorch) | Unified API with automatic backend selection based on availability and model requirements        | Abstract backend interface + auto-detect  |
-| **Complex Setup**         | Users waste hours debugging GPU drivers, CUDA/ROCm, model downloads          | One-command installation with automatic GPU detection, model pulling, and dependency resolution  | Shell scripts + Python environment checks |
-| **Limited Interfaces**    | CLI users want terminal, devs want API, end-users want GUI                   | CLI agent, native GTK GUI, REST API, and React dashboard - use what fits your workflow           | FastAPI + GTK3 + CLI argparse             |
-| **AMD GPU Support**       | AMD GPUs (RX 5600 XT, RX 6800) often unsupported or unstable with LLMs       | ROCm optimization with gfx1030 safeguards, environment variable tuning, CPU fallback             | ROCm detection + HSA_OVERRIDE_GFX_VERSION |
+| **Complex Setup**         | Users waste hours debugging GPU drivers, model downloads, and configurations | One-command installation with automatic GPU detection, model pulling, and dependency resolution  | Shell scripts + Python environment checks |
+| **Limited Interfaces**    | CLI users want terminal, devs want API, end-users want GUI                   | CLI agent, native GTK GUI, and REST API - use what fits your workflow                            | FastAPI + GTK3 + CLI argparse             |
 | **Command Execution**     | LLMs suggest commands but can't execute them safely (security risk)          | Safe command validator with whitelist/blacklist, sudo support with password handling via pexpect | pexpect + regex validation + confirmation |
 | **Developer Experience**  | Debugging LLM issues requires logs, metrics, and testing tools               | Comprehensive logging, performance benchmarks, GPU diagnostics, and test suite                   | Python logging + pytest + custom monitors |
 | **Model Performance**     | Default settings produce slow, verbose responses                             | Qwen3 Quick Thinking Mode with optimized temperature/top_p for 2-3x faster responses             | Tuned inference parameters + brief prompt |
@@ -62,7 +60,7 @@ Llama-GPU unifies the best of all worlds - leveraging Ollama's optimized model s
 
 1. **Quick Thinking Mode**: Optimized Qwen3 inference with tuned parameters (temp=0.4, top_p=0.8) for 2-3x faster responses while maintaining accuracy
 2. **Safe Sudo Execution**: First LLM tool to safely handle interactive sudo commands using pexpect with password caching
-3. **AMD ROCm First-Class Support**: Automatic detection and workarounds for problematic AMD architectures (gfx1030)
+3. **Three-Tier Command Security**: Whitelist/blacklist validation + interactive confirmation + secure sudo handling prevents dangerous operations
 4. **Multi-Interface Unity**: Single codebase supports CLI, GUI, and API without code duplication
 5. **Zero-Config Backend Switching**: Automatically falls back from Ollama → Native PyTorch → CPU based on availability
 
@@ -80,7 +78,6 @@ graph TB
     subgraph UI["🎨 User Interfaces"]
         CLI["<b>CLI Agent</b><br/>ai-agent<br/>━━━━━━━━━━<br/>Python argparse<br/>Terminal workflows"]
         GUI["<b>Native GTK3 GUI</b><br/>System Tray<br/>━━━━━━━━━━<br/>GTK3 + AppIndicator<br/>Desktop integration"]
-        WEB["<b>React Dashboard</b><br/>Web UI<br/>━━━━━━━━━━<br/>React + Charts<br/>Remote monitoring"]
     end
 
     subgraph API["🔌 Core API Layer"]
@@ -99,14 +96,12 @@ graph TB
     end
 
     subgraph HW["🖥️ Hardware Layer"]
-        GPU["<b>AMD ROCm</b><br/>━━━━━━<br/>gfx1030+<br/>RX 5600 XT"]
-        CUDA["<b>NVIDIA CUDA</b><br/>━━━━━━<br/>Compute 7.0+<br/>RTX Series"]
-        CPU["<b>CPU Fallback</b><br/>━━━━━━<br/>No GPU required<br/>Intel/AMD x86"]
+        GPU["<b>GPU Acceleration</b><br/>━━━━━━<br/>NVIDIA CUDA<br/>PyTorch + cuDNN"]
+        CPU["<b>CPU Fallback</b><br/>━━━━━━<br/>No GPU required<br/>Universal support"]
     end
 
     CLI -.->|"HTTP REST"| REST
     GUI -.->|"Direct conn"| OLLAMA
-    WEB -.->|"HTTP/WS"| REST
 
     REST ==>|"Load balance"| OLLAMA
     REST -.->|"Failover"| LLAMA
@@ -117,7 +112,7 @@ graph TB
 
     OLLAMA ==>|"Inference"| GPU
     OLLAMA -.->|"Fallback"| CPU
-    LLAMA ==>|"Inference"| CUDA
+    LLAMA ==>|"Inference"| GPU
     LLAMA -.->|"Fallback"| CPU
 
     style UI fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#fff
@@ -136,7 +131,6 @@ graph TB
     style SAFE fill:#92400e,stroke:#fb923c,color:#fff
     style SUDO fill:#7c2d12,stroke:#f97316,color:#fff
     style GPU fill:#581c87,stroke:#a78bfa,color:#fff
-    style CUDA fill:#6b21a8,stroke:#c084fc,color:#fff
     style CPU fill:#4c1d95,stroke:#a78bfa,color:#fff
 ```
 
@@ -264,12 +258,11 @@ flowchart TD
 
 ### 🎨 Multiple Interfaces
 
-| Interface         | Technology            | Use Case                                      |
-| ----------------- | --------------------- | --------------------------------------------- |
-| **Native GUI**    | GTK3 + AppIndicator3  | System tray integration, always accessible    |
-| **CLI Agent**     | Python + OllamaClient | Terminal workflows, automation, scripting     |
-| **Web Dashboard** | React + FastAPI       | Remote access, monitoring, team collaboration |
-| **REST API**      | FastAPI + OpenAPI     | Application integration, microservices        |
+| Interface      | Technology            | Use Case                                   |
+| -------------- | --------------------- | ------------------------------------------ |
+| **Native GUI** | GTK3 + AppIndicator3  | System tray integration, always accessible |
+| **CLI Agent**  | Python + OllamaClient | Terminal workflows, automation, scripting  |
+| **REST API**   | FastAPI + OpenAPI     | Application integration, microservices     |
 
 ### 🔧 Backend Engines
 
