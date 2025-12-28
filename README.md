@@ -245,6 +245,35 @@ ROOT_COMMANDS = ['apt', 'systemctl', 'mount']          # Require sudo
 4. Parse output in real-time
 5. Return structured result (exit code, stdout, stderr)
 
+### ⚡ **Direct Execution** (NEW)
+*Why: Users want action, not instructions*
+
+The GUI now **executes commands immediately** instead of explaining what to run.
+
+**Quick Examples:**
+```
+You: what is my ubuntu version
+🔧 Executing: lsb_release -a
+✅ Ubuntu 24.04.3 LTS (noble)
+
+You: how much disk space
+🔧 Executing: df -h
+✅ /dev/nvme0n1p2  458G  123G  312G  29% /
+```
+
+**How It Works:**
+1. **Smart Detection**: Regex patterns match common queries
+2. **Instant Execution**: Commands run via subprocess (read-only, safe)
+3. **Improved AI**: Updated prompt emphasizes "execute, don't explain"
+
+**Supported Queries:**
+- System info: "what ubuntu version", "what kernel"
+- Resources: "how much disk space", "show memory usage"
+- Network: "what's my ip", "check internet"
+- User: "who am i", "what's my username"
+
+**Documentation**: See [DIRECT_EXECUTION.md](docs/DIRECT_EXECUTION.md) for full details
+
 ---
 
 ## 🔧 Command Execution Tooling - Deep Dive
@@ -1405,10 +1434,14 @@ Then launch from your applications menu:
 - 🔔 System tray integration
 - 💬 Real-time AI chat with Phi4-Mini
 - 🔐 Safe command execution with sudo support
-- ⚡ GPU-accelerated inference
+- ⚡ **Direct Execution** - Ask "what ubuntu version" and get instant results
+- 🗂️ Persistent conversation history
+- 🔒 Single instance enforcement
 - 🔥 Beast Mode for autonomous operation
 
-📖 **Full guide:** [Desktop App Installation](docs/DESKTOP_APP_INSTALLATION.md)
+📖 **Full guides:**
+- [Desktop App Installation](docs/DESKTOP_APP_INSTALLATION.md)
+- [Direct Execution Feature](docs/DIRECT_EXECUTION.md)
 
 ### Prerequisites
 - Python 3.8+

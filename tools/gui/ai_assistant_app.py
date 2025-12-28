@@ -261,27 +261,36 @@ class ChatWindow(Gtk.Window):
 
         # System prompt
         self.add_system_message(
-            "You are a helpful, friendly AI assistant integrated into Ubuntu.\n\n"
-            "IMPORTANT: You can have normal conversations! Not everything needs to be a command.\n\n"
-            "When the user:\n"
-            "- Asks a question → Answer it naturally\n"
-            "- Wants to chat → Have a conversation\n"
-            "- Says 'test' → Respond friendly, ask what they want to test\n"
-            "- Asks for help → Explain and help\n"
-            "- Requests an action → THEN use commands\n\n"
-            "Command Execution (only when needed):\n"
-            "Format: $ command (on its own line, clean, no extra characters)\n"
-            "Example:\n"
-            "  To list files: $ ls -la\n"
-            "  NOT: `$ ls -la` or $ ls -la` or other variations\n\n"
-            "Available commands:\n"
+            "You are a direct, action-oriented AI assistant integrated into Ubuntu.\n\n"
+            "CORE RULE: EXECUTE COMMANDS IMMEDIATELY - DON'T TELL USER WHAT TO RUN\n\n"
+            "WRONG ❌:\n"
+            "  'You need to run lsb_release -a'\n"
+            "  'Try cat /etc/os-release'\n"
+            "  'Type df -h to check space'\n\n"
+            "RIGHT ✅:\n"
+            "  $ lsb_release -a 2>/dev/null || cat /etc/os-release\n"
+            "  (command runs, then you explain results)\n\n"
+            "BEHAVIOR:\n"
+            "- System question? Run command immediately\n"
+            "- Action requested? Execute it\n"
+            "- Need info? Get it yourself\n"
+            "- Show results, then explain briefly\n\n"
+            "COMMAND FORMAT:\n"
+            "$ command\n"
+            "(One per line, clean, no backticks)\n\n"
+            "EXAMPLES:\n"
+            "Q: 'what ubuntu version'\n"
+            "A: $ lsb_release -a 2>/dev/null || cat /etc/os-release\n\n"
+            "Q: 'how much space'\n"
+            "A: $ df -h\n\n"
+            "Q: 'who am i'\n"
+            "A: $ whoami\n\n"
+            "Available:\n"
             "- File: ls, cat, find, grep, mkdir, touch, cp, mv\n"
-            "- Info: df, free, ps, whoami, pwd, uname\n"
+            "- Info: df, free, ps, whoami, pwd, uname, lsb_release\n"
             "- Dev: python3, git, npm, pip\n"
             "- Net: curl, wget, ping\n\n"
-            "For sudo commands (apt, systemctl, etc.):\n"
-            "Explain them clearly and tell the user to run manually with sudo.\n\n"
-            "Be conversational, helpful, and only execute commands when actually needed!"
+            "Be direct. Execute first, explain after."
         )
 
     def create_ui(self):
@@ -328,9 +337,9 @@ class ChatWindow(Gtk.Window):
         # Create text tags for styling
         self.chat_buffer.create_tag("user", foreground="#2563eb", weight=700)
         self.chat_buffer.create_tag("assistant", foreground="#7c3aed", weight=700)
-        self.chat_buffer.create_tag("system", foreground="#059669", style="italic")
-        self.chat_buffer.create_tag("command", family="monospace", background="#f3f4f6")
-        self.chat_buffer.create_tag("error", foreground="#dc2626")
+        self.chat_buffer.create_tag("system", foreground="#10b981", background="#1a1a1a", style="italic")
+        self.chat_buffer.create_tag("command", family="monospace", background="#1e293b", foreground="#e2e8f0")
+        self.chat_buffer.create_tag("error", foreground="#ef4444", background="#1a1a1a")
 
         # Input area
         input_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -508,10 +517,74 @@ class ChatWindow(Gtk.Window):
         thread.daemon = True
         thread.start()
 
+    def detect_and_execute_system_query(self, user_input):
+        """Detect common system queries and execute them directly."""
+        import re
+
+        query_lower = user_input.lower().strip()
+
+        # Map of query patterns to commands
+        system_queries = {
+            r'(?:what|which|show|tell|get).*(?:ubuntu|os|linux|system).*version': 'lsb_release -a 2>/dev/null || cat /etc/os-release',
+            r'(?:what|which|show).*(?:kernel|uname)': 'uname -a',
+            r'(?:how much|what|show|check).*(?:disk|storage|space)': 'df -h',
+            r'(?:how much|what|show|check).*(?:memory|ram|usage)': 'free -h',
+            r'(?:show|list|what).*(?:running|process)': 'ps aux --sort=-%mem | head -20',
+            r'(?:what|show).*(?:hostname|computer name)': 'hostname',
+            r'(?:what|who).*(?:user|logged in|am i)': 'whoami',
+            r'(?:what|show).*(?:ip|network|address)': 'ip addr show | grep inet',
+            r'(?:show|what|list).*(?:gpu|graphics|video)': 'lspci | grep -i vga',
+            r'(?:show|check|test).*(?:internet|connection|network)': 'ping -c 4 8.8.8.8',
+        }
+
+        for pattern, command in system_queries.items():
+            if re.search(pattern, query_lower):
+                # Execute the command directly
+                GLib.idle_add(self.execute_system_command, command, user_input)
+                return True
+
+        return False
+
+    def execute_system_command(self, command, original_query):
+        """Execute a system command and show results."""
+        self.append_chat("", f"🔧 Executing: {command}", "system")
+
+        try:
+            result = subprocess.run(
+                command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if result.returncode == 0:
+                output = result.stdout.strip()
+                if output:
+                    self.append_chat("", f"✅ {output}", "system")
+                else:
+                    self.append_chat("", "✅ Command completed (no output)", "system")
+            else:
+                error = result.stderr.strip() or "Command failed"
+                self.append_chat("", f"❌ {error}", "error")
+
+        except subprocess.TimeoutExpired:
+            self.append_chat("", "❌ Command timed out", "error")
+        except Exception as e:
+            self.append_chat("", f"❌ Error: {str(e)}", "error")
+
+        finally:
+            self.input_entry.set_sensitive(True)
+            self.update_status("Ready")
+
     def process_message(self, user_input):
         """Process user message and get AI response."""
         if not self.ollama or not self.ollama.is_available():
             GLib.idle_add(self.show_error, "Ollama service not available")
+            return
+
+        # Check if this is a system query that should be executed directly
+        if self.detect_and_execute_system_query(user_input):
             return
 
         # Add to conversation history
