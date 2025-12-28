@@ -2,15 +2,14 @@
 
 <div align="center">
 
-**A Production-Ready Multi-Backend LLM Inference Platform**
+**A Local LLM Assistant with Safe Command Execution**
 
-*Seamless integration with Ollama, flexible command execution, and native Ubuntu desktop GUI*
+*Qwen-powered AI agent with CLI/GUI interfaces and secure terminal access*
 
 [![Build Status](https://github.com/hkevin01/Llama-GPU/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hkevin01/Llama-GPU/actions)
 [![Test Coverage](https://codecov.io/gh/hkevin01/Llama-GPU/branch/main/graph/badge.svg)](https://codecov.io/gh/hkevin01/Llama-GPU)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Ollama](https://img.shields.io/badge/Ollama-Compatible-green.svg)](https://ollama.ai/)
 
 </div>
 
@@ -34,35 +33,34 @@
 
 ## 🎯 Overview
 
-**Llama-GPU** is a production-ready LLM inference platform designed to bridge the gap between local AI models and real-world applications. It provides a unified interface for interacting with large language models while ensuring GPU optimization, safe command execution, and enterprise-grade reliability.
+**Llama-GPU** is a local AI assistant powered by Qwen models that combines conversational AI with secure command execution. It provides both CLI and native GTK3 GUI interfaces for terminal interaction, system queries, and safe command execution with sudo support.
 
 ### 🎯 Project Purpose
 
 **The Problem We Solve:**
-Running LLMs locally is complex - users face GPU compatibility issues, model management challenges, unsafe command execution, and lack of production-ready APIs. Existing solutions are fragmented: Ollama provides model serving, but lacks interfaces and safe execution; native PyTorch gives control but requires extensive setup; cloud APIs are expensive and have privacy concerns.
+Running LLMs locally is complex - users face unsafe command execution, lack of secure sudo handling, and poor desktop integration. Existing AI assistants can suggest commands but can't execute them safely, and cloud APIs compromise privacy.
 
 **Our Solution:**
-Llama-GPU unifies the best of all worlds - leveraging Ollama's optimized model serving, adding safe command execution with pexpect, providing multiple interfaces (CLI/GUI/API), and intelligent GPU backend selection with automatic CPU fallback.
+Llama-GPU provides a local AI assistant with Qwen models that safely executes terminal commands using a three-tier security system (whitelist/blacklist validation, interactive confirmation, secure sudo handling with pexpect), while providing both CLI and native GTK3 desktop interfaces.
 
 ### 🎭 Why Llama-GPU?
 
-| Challenge                 | Why It Matters                                                               | Our Solution                                                                                     | Technical Implementation                  |
-| ------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------- |
-| **Multiple LLM Backends** | Different models/hardware require different engines (Ollama, native PyTorch) | Unified API with automatic backend selection based on availability and model requirements        | Abstract backend interface + auto-detect  |
-| **Complex Setup**         | Users waste hours debugging GPU drivers, model downloads, and configurations | One-command installation with automatic GPU detection, model pulling, and dependency resolution  | Shell scripts + Python environment checks |
-| **Limited Interfaces**    | CLI users want terminal, devs want API, end-users want GUI                   | CLI agent, native GTK GUI, and REST API - use what fits your workflow                            | FastAPI + GTK3 + CLI argparse             |
-| **Command Execution**     | LLMs suggest commands but can't execute them safely (security risk)          | Safe command validator with whitelist/blacklist, sudo support with password handling via pexpect | pexpect + regex validation + confirmation |
-| **Developer Experience**  | Debugging LLM issues requires logs, metrics, and testing tools               | Comprehensive logging, performance benchmarks, GPU diagnostics, and test suite                   | Python logging + pytest + custom monitors |
-| **Model Performance**     | Default settings produce slow, verbose responses                             | Qwen3 Quick Thinking Mode with optimized temperature/top_p for 2-3x faster responses             | Tuned inference parameters + brief prompt |
-| **Production Readiness**  | Moving from prototype to production requires API, monitoring, error handling | OpenAI-compatible REST API, WebSocket streaming, error handling, request queueing                | FastAPI + uvicorn + async handlers        |
+| Challenge                | Why It Matters                                                       | Our Solution                                                                                     | Technical Implementation                  |
+| ------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------- |
+| **Command Execution**    | LLMs suggest commands but can't execute them safely (security risk)  | Safe command validator with whitelist/blacklist, sudo support with password handling via pexpect | pexpect + regex validation + confirmation |
+| **Multiple Interfaces**  | CLI users want terminal, end-users want GUI                          | CLI agent (tools/ai_agent.py) and native GTK3 desktop app with system tray integration           | GTK3 + AppIndicator3 + Python argparse    |
+| **Developer Experience** | Debugging LLM issues requires logs, metrics, and testing tools       | Comprehensive logging, performance benchmarks, diagnostics, and test suite                       | Python logging + pytest + custom monitors |
+| **Model Performance**    | Default LLM settings produce slow, verbose responses                 | Qwen3 with optimized temperature/top_p for fast, focused responses                               | Tuned inference parameters + brief prompt |
+| **Security Concerns**    | AI executing arbitrary commands risks system damage                  | Three-tier security: whitelist validation + user confirmation + dangerous command blocking       | Multi-layer validation + safe execution   |
+| **Complex Setup**        | Users waste hours with dependencies, GPU drivers, and configurations | Simple Python environment with automatic dependency resolution and GPU detection                 | Shell scripts + Python environment checks |
 
 ### 🚀 Key Innovations
 
-1. **Quick Thinking Mode**: Optimized Qwen3 inference with tuned parameters (temp=0.4, top_p=0.8) for 2-3x faster responses while maintaining accuracy
-2. **Safe Sudo Execution**: First LLM tool to safely handle interactive sudo commands using pexpect with password caching
+1. **Qwen Model Integration**: Optimized inference with Qwen3 using tuned parameters (temp=0.4, top_p=0.8) for fast, accurate responses
+2. **Safe Sudo Execution**: Secure handling of interactive sudo commands using pexpect with password caching
 3. **Three-Tier Command Security**: Whitelist/blacklist validation + interactive confirmation + secure sudo handling prevents dangerous operations
-4. **Multi-Interface Unity**: Single codebase supports CLI, GUI, and API without code duplication
-5. **Zero-Config Backend Switching**: Automatically falls back from Ollama → Native PyTorch → CPU based on availability
+4. **Native Desktop Integration**: GTK3 system tray app with notifications and always-accessible chat interface
+5. **Direct Command Execution**: Pattern-based detection for instant system query responses (version, disk space, etc.)
 
 ---
 
@@ -70,24 +68,18 @@ Llama-GPU unifies the best of all worlds - leveraging Ollama's optimized model s
 
 ### System Overview
 
-The platform consists of four layers: user interfaces, API layer, backend engines, and hardware abstraction. Each layer is designed for modularity and failover capability.
+The platform consists of three layers: user interfaces, execution layer, and AI model. The design focuses on secure command execution and responsive user interaction.
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#1e3a8a','primaryTextColor':'#fff','primaryBorderColor':'#3b82f6','lineColor':'#60a5fa','secondaryColor':'#312e81','tertiaryColor':'#1e293b','background':'#0f172a','mainBkg':'#1e293b','secondaryBkg':'#312e81','tertiaryBkg':'#1e3a8a','textColor':'#e2e8f0','fontSize':'14px'}}}%%
 graph TB
     subgraph UI["🎨 User Interfaces"]
-        CLI["<b>CLI Agent</b><br/>ai-agent<br/>━━━━━━━━━━<br/>Python argparse<br/>Terminal workflows"]
-        GUI["<b>Native GTK3 GUI</b><br/>System Tray<br/>━━━━━━━━━━<br/>GTK3 + AppIndicator<br/>Desktop integration"]
+        CLI["<b>CLI Agent</b><br/>tools/ai_agent.py<br/>━━━━━━━━━━<br/>Interactive terminal<br/>Beast Mode support"]
+        GUI["<b>GTK3 Desktop GUI</b><br/>System Tray App<br/>━━━━━━━━━━<br/>AppIndicator3<br/>Native notifications"]
     end
 
-    subgraph API["🔌 Core API Layer"]
-        REST["<b>REST API Server</b><br/>FastAPI<br/>━━━━━━━━━━<br/>OpenAI-compatible<br/>/v1/chat/completions"]
-        WS["<b>WebSocket Streaming</b><br/>Real-time tokens<br/>━━━━━━━━━━<br/>Async streaming<br/>Low latency"]
-    end
-
-    subgraph BACKEND["⚙️ Backend Engines"]
-        OLLAMA["<b>Ollama Backend</b><br/>Primary Engine<br/>━━━━━━━━━━<br/>HTTP REST client<br/>qwen3:4b (2.5GB)"]
-        LLAMA["<b>LlamaGPU Native</b><br/>Fallback Engine<br/>━━━━━━━━━━<br/>PyTorch + Transformers<br/>Direct GPU control"]
+    subgraph MODEL["🤖 AI Model"]
+        QWEN["<b>Qwen3:4b Model</b><br/>Local Inference<br/>━━━━━━━━━━<br/>2.5GB model<br/>Fast responses"]
     end
 
     subgraph EXEC["🔒 Execution Layer"]
@@ -100,94 +92,86 @@ graph TB
         CPU["<b>CPU Fallback</b><br/>━━━━━━<br/>No GPU required<br/>Universal support"]
     end
 
-    CLI -.->|"HTTP REST"| REST
-    GUI -.->|"Direct conn"| OLLAMA
+    CLI ==>|"User input"| QWEN
+    GUI ==>|"User input"| QWEN
 
-    REST ==>|"Load balance"| OLLAMA
-    REST -.->|"Failover"| LLAMA
-
-    CLI ==>|"Execute"| SAFE
-    GUI ==>|"Execute"| SAFE
+    QWEN ==>|"Response + cmds"| SAFE
     SAFE -.->|"Root cmds"| SUDO
 
-    OLLAMA ==>|"Inference"| GPU
-    OLLAMA -.->|"Fallback"| CPU
-    LLAMA ==>|"Inference"| GPU
-    LLAMA -.->|"Fallback"| CPU
+    SAFE ==>|"Results"| CLI
+    SAFE ==>|"Results"| GUI
+    SUDO ==>|"Results"| CLI
+    SUDO ==>|"Results"| GUI
+
+    QWEN ==>|"Inference"| GPU
+    QWEN -.->|"Fallback"| CPU
 
     style UI fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#fff
-    style API fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#fff
-    style BACKEND fill:#1e293b,stroke:#10b981,stroke-width:2px,color:#fff
+    style MODEL fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#fff
     style EXEC fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#fff
     style HW fill:#1e293b,stroke:#8b5cf6,stroke-width:2px,color:#fff
 
     style CLI fill:#1e40af,stroke:#60a5fa,color:#fff
     style GUI fill:#5b21b6,stroke:#a78bfa,color:#fff
-    style WEB fill:#0891b2,stroke:#22d3ee,color:#fff
-    style REST fill:#4c1d95,stroke:#a78bfa,color:#fff
-    style WS fill:#164e63,stroke:#06b6d4,color:#fff
-    style OLLAMA fill:#065f46,stroke:#10b981,color:#fff
-    style LLAMA fill:#064e3b,stroke:#34d399,color:#fff
+    style QWEN fill:#065f46,stroke:#10b981,color:#fff
     style SAFE fill:#92400e,stroke:#fb923c,color:#fff
     style SUDO fill:#7c2d12,stroke:#f97316,color:#fff
     style GPU fill:#581c87,stroke:#a78bfa,color:#fff
     style CPU fill:#4c1d95,stroke:#a78bfa,color:#fff
 ```
 
-### Multi-Backend Architecture Flow
 
-**Why This Matters:** Users need reliability. If Ollama crashes or a model isn't available, the system should automatically fall back to native PyTorch or CPU inference without manual intervention.
+
+```mermaid
+### User Interaction Flow
+
+**Why This Matters:** Users need a responsive, conversational AI that can both chat naturally and execute commands safely when needed.
 
 **How It Works:**
-1. **Request arrives** via CLI, GUI, or API
-2. **Backend selector** checks Ollama availability (`is_available()` → HTTP ping to :11434)
-3. **Ollama available?** → Forward request, stream response via `/api/chat`
-4. **Ollama down?** → Fall back to LlamaGPU native engine (PyTorch)
-5. **GPU unavailable?** → CPU inference (slower but functional)
+1. **User sends message** via CLI or GUI
+2. **Qwen model processes** and generates response
+3. **Command parser** extracts any shell commands from response
+4. **Safety validator** checks commands against security rules
+5. **Execute safely** with subprocess or pexpect (for sudo)
+6. **Display results** back to user in real-time
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#1e3a8a','primaryTextColor':'#fff','primaryBorderColor':'#3b82f6','lineColor':'#60a5fa','secondaryColor':'#312e81','tertiaryColor':'#1e293b','background':'#0f172a','mainBkg':'#1e293b','fontSize':'14px'}}}%%
 sequenceDiagram
     autonumber
-    participant User as 👤 User
-    participant API as 🔌 Unified API<br/>(FastAPI)
-    participant Selector as 🎯 Backend Selector<br/>(Auto-detect)
-    participant Ollama as 🟢 Ollama<br/>(Port 11434)
-    participant Native as 🟡 LlamaGPU Native<br/>(PyTorch)
-    participant GPU as 🖥️ GPU/CPU<br/>(Hardware)
+    participant User as 👤 User<br/>(CLI/GUI)
+    participant AI as 🤖 Qwen Model<br/>(Local)
+    participant Parser as 🔍 Command Parser<br/>(Regex)
+    participant Validator as 🛡️ Safety Validator<br/>(Security)
+    participant Executor as ⚙️ Executor<br/>(subprocess/pexpect)
 
-    User->>API: POST /v1/chat/completions<br/>{model: "qwen3:4b", messages: [...]}
+    User->>AI: "check disk space"
+    AI->>AI: Generate response
+    AI-->>Parser: "Let me check:\n$ df -h"
 
-    API->>Selector: Determine best backend
+    Parser->>Parser: Extract command: df -h
+    Parser->>Validator: Validate "df -h"
 
-    Selector->>Ollama: is_available()?<br/>HTTP GET :11434/api/tags
+    alt Safe Command
+        Validator-->>Executor: ✅ Safe - execute
+        Executor->>Executor: subprocess.run("df -h")
+        Executor-->>User: ✅ Filesystem   Size   Used...<br/>464G  123G  312G
 
-    alt Ollama Available
-        Ollama-->>Selector: ✅ 200 OK + model list
-        Selector->>Ollama: Forward request<br/>POST /api/chat
-        Ollama->>GPU: Run inference (ROCm/CUDA)
-        GPU-->>Ollama: Token stream
-        Ollama-->>API: Stream response (JSON)
-        API-->>User: {"choices": [{"message": {"content": "..."}}]}
+    else Dangerous Command
+        Validator-->>User: ❌ BLOCKED: dangerous command
 
-    else Ollama Unavailable
-        Ollama--xSelector: ❌ Connection refused
-        Selector->>Native: Fallback to native engine
-        Native->>Native: Load model<br/>torch.load(qwen3)
-        Native->>GPU: Native inference (PyTorch)
-        GPU-->>Native: Token tensor
-        Native-->>API: Response text
-        API-->>User: {"choices": [{"message": {"content": "..."}}]}
+    else Sudo Required
+        Validator->>User: 🔐 Enter password for sudo
+        User->>Executor: [password]
+        Executor->>Executor: pexpect.spawn("sudo ...")
+        Executor-->>User: ✅ Command output
     end
 
-    Note over API,User: Transparent failover<br/>User sees no difference
-
     style User fill:#1e40af,stroke:#60a5fa,color:#fff
-    style API fill:#4c1d95,stroke:#a78bfa,color:#fff
-    style Selector fill:#7c2d12,stroke:#fb923c,color:#fff
-    style Ollama fill:#065f46,stroke:#10b981,color:#fff
-    style Native fill:#92400e,stroke:#fbbf24,color:#fff
-    style GPU fill:#581c87,stroke:#a78bfa,color:#fff
+    style AI fill:#065f46,stroke:#10b981,color:#fff
+    style Parser fill:#4c1d95,stroke:#a78bfa,color:#fff
+    style Validator fill:#7c2d12,stroke:#fb923c,color:#fff
+    style Executor fill:#92400e,stroke:#fbbf24,color:#fff
 ```
 
 ### Command Execution Flow
@@ -258,76 +242,33 @@ flowchart TD
 
 ### 🎨 Multiple Interfaces
 
-| Interface      | Technology            | Use Case                                   |
-| -------------- | --------------------- | ------------------------------------------ |
-| **Native GUI** | GTK3 + AppIndicator3  | System tray integration, always accessible |
-| **CLI Agent**  | Python + OllamaClient | Terminal workflows, automation, scripting  |
-| **REST API**   | FastAPI + OpenAPI     | Application integration, microservices     |
+| Interface      | Technology           | Use Case                                   |
+| -------------- | -------------------- | ------------------------------------------ |
+| **CLI Agent**  | Python + argparse    | Terminal workflows, automation, scripting  |
+| **Native GUI** | GTK3 + AppIndicator3 | System tray integration, always accessible |
 
-### 🔧 Backend Engines
+### 🔧 AI Model Integration
 
-#### **Ollama Integration**
-*Why: Production-ready, optimized model serving*
+#### **Qwen3 Model**
+*Why: Fast, capable, and runs locally*
 
-- **Technology**: HTTP REST client with streaming support
-- **Models Supported**: qwen3:4b (2.5GB), llama3, mistral, and other Ollama-compatible models
-- **Performance**: 3-7s response time with Qwen3 Quick Thinking
-- **Implementation**: Custom OllamaClient with connection pooling
-
-**How it works:**
-1. Detects Ollama service on port 11434
-2. Lists available models via `/api/tags`
-3. Streams responses using `/api/generate` or `/api/chat`
-4. Automatically handles model loading and caching
-
-#### **Qwen3 Quick Thinking Mode** (NEW)
-*Why: Faster responses while maintaining accuracy*
-
-Qwen3 has a built-in "thinking" mode that reasons through problems before answering. We optimized this with tuned parameters:
-
-```python
-from src.backends.ollama import OllamaClient
-client = OllamaClient()
-
-# Quick thinking - optimized for speed + accuracy
-result = client.quick_chat(
-    model='qwen3:4b',
-    messages=[{'role': 'user', 'content': 'What is the capital of France?'}]
-)
-# Response: "Paris" in ~3 seconds
-```
+- **Model**: Qwen3:4b (2.5GB)
+- **Performance**: Fast responses with good accuracy
+- **Implementation**: Direct model integration with PyTorch
+- **Features**: Conversational AI with command execution capabilities
 
 **Optimized Settings:**
 | Parameter        | Value         | Effect                               |
 | ---------------- | ------------- | ------------------------------------ |
 | `temperature`    | 0.4           | More focused, less wandering         |
 | `top_p`          | 0.8           | Tighter token sampling               |
-| `repeat_penalty` | 1.15          | Reduces repetitive thinking          |
-| `max_tokens`     | 600           | Enough for thinking + answer         |
-| `think`          | True          | Allows reasoning for accuracy        |
+| `repeat_penalty` | 1.15          | Reduces repetitive text              |
+| `max_tokens`     | 600           | Enough for response                  |
 | Auto brevity     | System prompt | "Be very brief. Keep answers short." |
 
 **Performance Benchmarks:**
 | Question Type | Example                | Response Time |
-| ------------- | ---------------------- | ------------- |
-| Simple fact   | "Capital of France?"   | ~3.2s         |
-| Math          | "15 × 7?"              | ~5.1s         |
-| List          | "Name 3 planets"       | ~6.8s         |
-| Command       | "List files in Linux?" | ~4.0s         |
 
-#### **LlamaGPU Native Engine**
-*Why: Direct GPU control, maximum customization*
-
-- **Technology**: PyTorch + ROCm/CUDA backends
-- **Optimization**: FP16 quantization, KV-cache management
-- **GPU Support**: AMD gfx1030-1100, NVIDIA Compute 7.0+
-- **Fallback**: Automatic CPU mode when GPU unavailable
-
-**Implementation Details:**
-- Uses `torch.cuda.is_available()` for GPU detection
-- Implements safeguards for problematic AMD gfx1030 (RX 5600 XT)
-- Memory management with `torch.cuda.empty_cache()`
-- Supports streaming via Python generators
 
 ### 💻 Command Execution System
 
@@ -361,10 +302,10 @@ ROOT_COMMANDS = ['apt', 'systemctl', 'mount']          # Require sudo
 4. Parse output in real-time
 5. Return structured result (exit code, stdout, stderr)
 
-### ⚡ **Direct Execution** (NEW)
+### ⚡ **Direct Execution**
 *Why: Users want action, not instructions*
 
-The GUI now **executes commands immediately** instead of explaining what to run.
+The system now **executes commands immediately** instead of just explaining what to run.
 
 **Quick Examples:**
 ```
@@ -971,14 +912,14 @@ PYTORCH_ROCM_ARCH=gfx1030             # Explicit architecture
 *Why: Choose the right model for your use case*
 
 - **Metrics**: Response time, tokens/sec, throughput, memory usage
-- **Models**: qwen3:4b, llama3, mistral, and other Ollama-compatible models
+- **Model**: qwen3:4b (2.5GB)
 - **Output**: JSON reports, formatted tables, graphs
 - **Automation**: CI/CD integration, performance regression detection
 
 #### **GPU Diagnostics**
 *Why: Troubleshoot hardware/driver issues*
 
-- **Checks**: ROCm installation, PyTorch compatibility, Ollama status
+- **Checks**: GPU availability, PyTorch compatibility, model status
 - **Reports**: GPU architecture, driver version, available models
 - **Recommendations**: Environment variables, version upgrades, workarounds
 
@@ -997,7 +938,7 @@ PYTORCH_ROCM_ARCH=gfx1030             # Explicit architecture
 
 ## 🛠️ Technology Stack
 
-Our technology choices are driven by three principles: **production readiness**, **developer experience**, and **hardware optimization**.
+Our technology choices are driven by three principles: **simplicity**, **security**, and **performance**.
 
 ### Core Technologies Overview
 
@@ -1014,43 +955,20 @@ mindmap
         Native Linux
         AppIndicator3
         System tray
-      Web Dashboard
-        React 18
-        Chart.js
-        WebSocket client
-    🔌 **API Layer**
-      FastAPI
-        Async/await
-        Pydantic validation
-        OpenAPI docs
-      Uvicorn
-        ASGI server
-        Hot reload
-        HTTP/2
-      WebSocket
-        Server-Sent Events
-        Real-time streaming
-    ⚙️ **Backends**
-      Ollama
-        HTTP REST
-        Model management
-        Optimized inference
+    🤖 **AI Model**
+      Qwen3
+        4B parameters
+        2.5GB model
+        Local inference
       PyTorch
-        Native control
-        Custom models
-        GPU/CPU fallback
-      Transformers
-        HuggingFace models
-        AutoModelForCausalLM
+        GPU acceleration
+        CPU fallback
+        Model loading
     🖥️ **Hardware**
-      AMD ROCm
-        gfx1030+ support
-        HSA overrides
-        MIOpen tuning
       NVIDIA CUDA
         Compute 7.0+
         cuDNN
-        TensorRT
+        PyTorch native
       CPU Fallback
         AVX2/AVX512
         OpenMP threading
@@ -1068,42 +986,35 @@ mindmap
         Rotating files
         Log levels
         Structured logs
-      Metrics
-        Response times
-        GPU usage
-        Token throughput
+      Diagnostics
+        Command tracking
+        Error reporting
 ```
 
 ### Technology Choices Explained
 
 Each technology in our stack was chosen for specific technical reasons. Here's why:
 
-| Component                | Technology           | What It Is                                                                         | Why We Chose It                                                                                                                                            | How It Works                                                                                | Measured Impact                                                                                       |
-| ------------------------ | -------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| **API Framework**        | FastAPI              | Modern Python web framework for building APIs with automatic OpenAPI documentation | • Async/await for concurrent requests<br/>• Automatic request validation (Pydantic)<br/>• OpenAPI/Swagger docs auto-generated<br/>• 3-5x faster than Flask | Request → Pydantic validation → async handler → response serialization → JSON output        | • 200+ concurrent requests<br/>• <50ms routing overhead<br/>• Auto type checking prevents 90% of bugs |
-| **Model Server**         | Ollama               | Local LLM serving platform that manages model lifecycle and inference              | • Production-tested inference engine<br/>• Automatic model downloads/updates<br/>• Memory management & model unloading<br/>• Multi-model support           | HTTP API → Model loader → GPU inference → Token streamer → JSON response                    | • 3-7s response times<br/>• 2.5GB model (qwen3:4b)<br/>• 15-60 tokens/sec                             |
-| **GUI Framework**        | GTK3 + AppIndicator3 | Native Linux GUI toolkit for desktop applications                                  | • Native look and feel on Ubuntu/GNOME<br/>• System tray integration<br/>• Low memory footprint (20-30MB)<br/>• No Electron overhead                       | GTK main loop → event handlers → widget updates → GLib threading → UI render                | • <30MB RAM usage<br/>• Native system integration<br/>• Startup time <1s                              |
-| **Sudo Handler**         | pexpect              | Python library for controlling interactive command-line programs                   | • Only library that can handle sudo password prompts<br/>• PTY control for interactive sessions<br/>• Timeout and pattern matching<br/>• Cross-platform    | spawn(sudo) → expect("password:") → sendline(password) → wait for output → parse result     | • 100% sudo command success<br/>• Password cached per session<br/>• Timeout prevents hangs            |
-| **GPU Backend (AMD)**    | ROCm                 | AMD's open-source GPU compute platform                                             | • Free and open-source (vs CUDA proprietary)<br/>• Supports RDNA/CDNA architectures<br/>• PyTorch integration available<br/>• Workarounds for gfx1030      | HSA_OVERRIDE_GFX_VERSION → PyTorch detects GPU → rocBLAS/MIOpen kernels → tensor operations | • 10-20x speedup vs CPU<br/>• gfx1030 workaround successful<br/>• 6GB VRAM sufficient                 |
-| **GPU Backend (NVIDIA)** | CUDA                 | NVIDIA's parallel computing platform                                               | • Industry standard with best support<br/>• Mature ecosystem (cuDNN, TensorRT)<br/>• PyTorch primary target platform                                       | CUDA context → device memory alloc → kernel launch → tensor ops → sync → result copy        | • 40-60 tokens/sec (RTX 3060)<br/>• 80-100 tokens/sec (RTX 4090)<br/>• Stable drivers                 |
-| **LLM Library**          | Transformers         | HuggingFace library for pre-trained models                                         | • Largest model repository (100k+ models)<br/>• AutoModel classes simplify loading<br/>• Quantization support (int8/int4)<br/>• Active development         | `from_pretrained()` → download model → load to device → `model.generate()` → decode tokens  | • 10k+ compatible models<br/>• Auto device mapping<br/>• FP16 saves 50% VRAM                          |
-| **HTTP Client**          | httpx                | Async HTTP client for Python                                                       | • Async/await support (vs requests blocking)<br/>• Connection pooling<br/>• HTTP/2 support<br/>• Timeout configuration                                     | Connection pool → async request → stream response chunks → parse JSON                       | • 5-10x faster than requests<br/>• Connection reuse<br/>• Streaming support                           |
-| **CLI Framework**        | argparse + Rich      | Python argument parsing with rich terminal formatting                              | • Standard library (no dependencies)<br/>• Rich adds colors, tables, progress bars<br/>• Cross-platform terminal support                                   | argparse.parse_args() → validate → Rich.print() → formatted output                          | • Clear help messages<br/>• Beautiful output<br/>• Progress indicators                                |
-| **Validation**           | Pydantic             | Data validation using Python type hints                                            | • Automatic validation from type hints<br/>• JSON schema generation<br/>• Error messages with field names<br/>• Prevents 80% of runtime errors             | Type hints → Pydantic model → validate input → raise ValidationError if invalid             | • Catches type errors pre-execution<br/>• Self-documenting code<br/>• Auto API docs                   |
+| Component             | Technology           | What It Is                                           | Why We Chose It                                                                                                                                         | How It Works                                                                            | Measured Impact                                                                            |
+| --------------------- | -------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **AI Model**          | Qwen3 (4B)           | Compact LLM optimized for conversation and reasoning | • Small size (2.5GB) runs on consumer hardware<br/>• Fast inference<br/>• Good reasoning capabilities<br/>• Supports both chat and command generation   | Model loaded → PyTorch inference → Token generation → Response decoded                  | • Fast responses<br/>• Low VRAM usage<br/>• Good accuracy                                  |
+| **GUI Framework**     | GTK3 + AppIndicator3 | Native Linux GUI toolkit for desktop applications    | • Native look and feel on Ubuntu/GNOME<br/>• System tray integration<br/>• Low memory footprint (20-30MB)<br/>• No Electron overhead                    | GTK main loop → event handlers → widget updates → GLib threading → UI render            | • <30MB RAM usage<br/>• Native system integration<br/>• Startup time <1s                   |
+| **Sudo Handler**      | pexpect              | Python library for controlling interactive programs  | • Only library that can handle sudo password prompts<br/>• PTY control for interactive sessions<br/>• Timeout and pattern matching<br/>• Cross-platform | spawn(sudo) → expect("password:") → sendline(password) → wait for output → parse result | • 100% sudo command success<br/>• Password cached per session<br/>• Timeout prevents hangs |
+| **GPU Backend**       | CUDA (PyTorch)       | NVIDIA's parallel computing platform                 | • Industry standard with best support<br/>• Mature ecosystem (cuDNN)<br/>• PyTorch primary target platform<br/>• Stable drivers                         | CUDA context → device memory alloc → kernel launch → tensor ops → sync → result copy    | • GPU acceleration<br/>• Stable performance<br/>• Wide compatibility                       |
+| **Model Framework**   | PyTorch              | Deep learning framework for model inference          | • Industry standard for LLMs<br/>• Excellent CUDA support<br/>• Easy model loading<br/>• Active community                                               | Load model → Move to GPU → Forward pass → Generate tokens                               | • GPU/CPU flexibility<br/>• Good performance<br/>• Wide model support                      |
+| **CLI Framework**     | argparse             | Python argument parsing (standard library)           | • Standard library (no dependencies)<br/>• Simple and reliable<br/>• Cross-platform terminal support                                                    | argparse.parse_args() → validate → execute command                                      | • Clear help messages<br/>• No extra dependencies<br/>• Reliable                           |
+| **Command Execution** | subprocess           | Python standard library for process management       | • Safe command execution<br/>• Output capture<br/>• Timeout support<br/>• Standard library                                                              | subprocess.run() → capture stdout/stderr → return result                                | • Safe execution<br/>• Timeout protection<br/>• Error handling                             |
+| **Logging**           | Python logging       | Standard library logging framework                   | • Built-in, no dependencies<br/>• Flexible configuration<br/>• Multiple handlers<br/>• Log rotation support                                             | Logger → Handler → Formatter → Output                                                   | • Complete audit trail<br/>• Debug capability<br/>• Error tracking                         |
 
 ### Technology Decision Tree
 
-**Why FastAPI over Flask/Django?**
-- **Need:** Async streaming for LLM tokens, concurrent request handling
-- **Flask:** Blocking WSGI, no native async → ❌
-- **Django:** Heavy framework, overkill for API → ❌
-- **FastAPI:** Async ASGI, auto docs, Pydantic validation → ✅
+**Why Qwen3 over other models?**
+- **Need:** Fast, accurate, runs locally on consumer hardware
+- **Llama 3 8B:** Too large (8B params, 5GB+) → ❌
+- **Phi-4:** Smaller but less capable → ❌
+- **Qwen3 4B:** Perfect balance - 2.5GB, fast, accurate → ✅
 
-**Why Ollama over llama.cpp or vLLM?**
-- **Need:** Easy model management, production-ready, cross-platform
-- **llama.cpp:** Low-level, manual model conversion → ❌
-- **vLLM:** Complex setup, CUDA-only → ❌
-- **Ollama:** One-command model pull, auto updates, ROCm support → ✅
+
 
 **Why GTK3 over Electron/Qt?**
 - **Need:** Native Linux integration, low memory, system tray
@@ -1118,46 +1029,19 @@ Each technology in our stack was chosen for specific technical reasons. Here's w
 
 ### Technology Stack Summary Table
 
-| Layer          | Component             | Purpose            | Key Feature                         | Performance        |
-| -------------- | --------------------- | ------------------ | ----------------------------------- | ------------------ |
-| **Interface**  | CLI (argparse + Rich) | Terminal workflows | Interactive prompts, colored output | Instant startup    |
-|                | GTK3 GUI              | Desktop app        | System tray, notifications          | <30MB RAM          |
-|                | React Dashboard       | Web monitoring     | Real-time charts, remote access     | SPA, lazy loading  |
-| **API**        | FastAPI               | REST API server    | Async, auto docs, validation        | 200+ concurrent    |
-|                | Uvicorn               | ASGI server        | HTTP/2, hot reload                  | <50ms overhead     |
-|                | WebSocket             | Streaming          | Real-time token delivery            | <10ms latency      |
-| **Backend**    | Ollama                | Primary LLM engine | Model management, optimized         | 3-7s responses     |
-|                | PyTorch               | Fallback engine    | Native GPU control                  | Full model control |
-|                | Transformers          | Model library      | 100k+ models                        | Auto download      |
-| **Execution**  | pexpect               | Sudo handler       | Interactive password                | 100% success rate  |
-|                | subprocess            | Safe commands      | Non-interactive                     | Timeout protection |
-| **GPU**        | ROCm (AMD)            | GPU compute        | Open-source, RDNA support           | 10-20x vs CPU      |
-|                | CUDA (NVIDIA)         | GPU compute        | Industry standard                   | 40-100 tokens/sec  |
-| **Validation** | Pydantic              | Data validation    | Type-safe, auto docs                | Pre-runtime errors |
+| Layer         | Component             | Purpose            | Key Feature                         | Performance       |
+| ------------- | --------------------- | ------------------ | ----------------------------------- | ----------------- |
+| **Interface** | CLI (argparse + Rich) | Terminal workflows | Interactive prompts, colored output | Instant startup   |
+|               | GTK3 GUI              | Desktop app        | System tray, notifications          | <30MB RAM         |
+|               | React Dashboard       | Web monitoring     | Real-time charts, remote access     | SPA, lazy loading |
+
 
 ### Architectural Patterns
 
-**1. Backend Abstraction Pattern**
-```python
-class BackendInterface(ABC):
-    @abstractmethod
-    def infer(self, prompt: str) -> str:
-        pass
-
-class OllamaBackend(BackendInterface):
-    def infer(self, prompt: str) -> str:
-        return httpx.post("http://localhost:11434/api/generate", ...)
-
-class NativeBackend(BackendInterface):
-    def infer(self, prompt: str) -> str:
-        return model.generate(prompt)
-```
-**Why:** Allows seamless switching between Ollama and native PyTorch without changing calling code.
-
-**2. Safety Validator Pattern**
+**1. Command Safety Validator Pattern**
 ```python
 class CommandValidator:
-    WHITELIST = ["ls", "cat", "grep"]
+    WHITELIST = ["ls", "cat", "grep", "pwd", "whoami"]
     BLACKLIST = ["rm -rf /", "dd", "mkfs"]
 
     def validate(self, cmd: str) -> ValidationResult:
@@ -1169,11 +1053,15 @@ class CommandValidator:
 ```
 **Why:** Multi-tier safety prevents dangerous commands while allowing safe ones without friction.
 
-**3. Streaming Response Pattern**
+**2. Interactive Sudo Handler Pattern**
 ```python
-async def stream_tokens():
-    async with httpx.stream("POST", url) as response:
-        async for chunk in response.aiter_bytes():
+def execute_sudo(command: str):
+    child = pexpect.spawn(f'sudo -S {command}')
+    child.sendline(password)
+    output = child.read()
+    return output
+```
+**Why:** Securely handles sudo commands that require interactive password entry.
             token = parse_chunk(chunk)
             yield token
 ```

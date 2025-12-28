@@ -26,19 +26,18 @@ class CommandValidator:
     ]
 
     # Tier 2: Always blocked - never execute
-    BLACKLIST = [
+    BLACKLIST_PATTERNS = [
         'rm -rf /',
         'rm -rf /*',
         'dd if=/dev/zero',
         'mkfs',
         ':(){ :|:& };:',  # Fork bomb
-        'chmod -R 777 /',
         'chmod -r 777 /',
-        'chown -R',
+        'chown -r',
         '> /dev/sda',
         'mv / /dev/null',
-        'wget http://* | sh',
-        'curl http://* | bash'
+        '| sh',  # Piping to shell
+        '| bash',  # Piping to bash
     ]
 
     # Tier 3: Requires sudo - needs confirmation
@@ -58,15 +57,13 @@ class CommandValidator:
         command = command.strip()
 
         # Check blacklist first
-        for dangerous in self.BLACKLIST:
+        for dangerous in self.BLACKLIST_PATTERNS:
             if dangerous in command.lower():
                 return {
                     'action': 'block',
                     'reason': f'Dangerous command pattern detected: {dangerous}',
                     'requires_sudo': False
-                }
-
-        # Check if sudo required
+                }        # Check if sudo required
         requires_sudo = any(cmd in command.split()[0] for cmd in self.SUDO_COMMANDS) or command.startswith('sudo')
 
         # Check whitelist
