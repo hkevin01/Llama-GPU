@@ -1212,8 +1212,7 @@ Llama-GPU/
 │   ├── utils/
 │   │   ├── gpu_detection.py         # GPU detection and setup
 │   │   └── system_info.py           # System diagnostics
-│   ├── llama_gpu.py                 # Native LLM engine
-│   └── unified_api_server.py        # Multi-backend FastAPI server
+│   └── llama_gpu.py                 # Native Qwen LLM engine
 │
 ├── 📁 tools/                         # CLI and GUI tools
 │   ├── ai_agent.py                  # Beast Mode CLI agent
@@ -1387,12 +1386,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **Ollama Team** - Production-ready LLM serving platform
 - **Alibaba Cloud** - Qwen model family with thinking capabilities
 - **PyTorch Team** - Deep learning framework and GPU backends
-- **FastAPI** - Modern async web framework
 - **GTK/GNOME** - Native Linux desktop integration
-- **AMD & NVIDIA** - GPU compute platforms (ROCm & CUDA)
+- **NVIDIA** - GPU compute platform (CUDA)
+- **Python Community** - pexpect for secure sudo handling
 
 ---
 
@@ -1601,109 +1599,62 @@ All examples provide detailed output including:
 - Memory usage statistics
 - JSON export for further processing
 
-## Project Structure
+## Core Technologies
 
-```
-Llama-GPU/
-├── src/                    # Core source code
-│   ├── backend/           # Backend implementations (CPU, CUDA, ROCm)
-│   ├── utils/             # Utility functions (AWS detection, logging)
-│   ├── multi_gpu.py       # Multi-GPU support and parallelism
-│   ├── quantization.py    # Quantization and optimization
-│   ├── api_server.py      # Production FastAPI server
-│   ├── model_manager.py   # Model loading and management
-│   └── llama_gpu.py       # Main interface
-├── scripts/               # Setup and utility scripts
-├── tests/                 # Comprehensive test suite
-│   ├── test_multi_gpu.py  # Multi-GPU functionality tests
-│   ├── test_quantization.py # Quantization tests
-│   ├── test_api_server.py # API server tests
-│   └── ...                # Other test modules
-├── docs/                  # Documentation
-│   ├── api.md            # API reference
-│   ├── usage.md          # Usage guide
-│   ├── troubleshooting.md # Troubleshooting guide
-│   ├── project-plan.md   # Project roadmap and status
-│   └── publishing.md     # PyPI publishing guide
-├── examples/              # Usage examples
-│   ├── inference_example.py      # Basic inference
-│   ├── named_entity_recognition.py # NER example
-│   ├── document_classification.py # Document classification
-│   ├── language_detection.py      # Language detection
-│   ├── question_answering.py      # Question answering
-│   ├── text_generation.py         # Text generation with GPU benefits
-│   ├── code_generation.py         # Code generation with GPU benefits
-│   ├── conversation_simulation.py # Conversation simulation with GPU benefits
-│   └── data_analysis.py           # Data analysis with GPU benefits
-├── logs/                  # Log files and test outputs
-│   ├── multi_gpu_implementation_summary.log
-│   ├── project_progress_summary.log
-│   └── quantization.log
-└── cache/                 # Quantized model cache
-```
+### AI Model & Inference
+- **Qwen3:4b Model** - Alibaba's efficient LLM for local inference
+- **PyTorch** - Deep learning framework with CUDA support
+- **GPU Acceleration** - NVIDIA CUDA for fast token generation
+- **CPU Fallback** - Automatic fallback for non-GPU systems
 
-## Project Status
+### Security Architecture
+- **Three-Tier Command Validation** - Whitelist, blacklist, and interactive confirmation
+- **Safe Execution** - subprocess for normal commands
+- **Sudo Handling** - pexpect for interactive password management
+- **Comprehensive Testing** - 20 security tests covering all scenarios
 
-### ✅ Completed Features (75% Complete)
+### User Interfaces
+- **CLI Agent** - Terminal-based assistant with Beast Mode features
+- **GTK3 Desktop GUI** - Native Linux system tray integration
+- **Interactive Prompts** - User confirmation for unknown commands
 
-- **Phase 1**: Core Infrastructure ✅
-  - Multi-backend support (CPU, CUDA, ROCm)
-  - AWS GPU detection and optimization
-  - Basic inference and batch processing
-  - Comprehensive test suite
+## Current Status
 
-- **Phase 2**: Production-Ready API Server ✅
-  - FastAPI server with OpenAI-compatible endpoints
-  - Request queuing and dynamic batching
-  - API key authentication and rate limiting
-  - WebSocket streaming support
-  - Production monitoring and logging
+### ✅ Completed Features
 
-- **Phase 3**: Advanced Inference Features ✅
-  - Multiple sampling strategies
-  - Guided generation and function calling
-  - Advanced batching and streaming
-  - Error handling and fallback mechanisms
+- **Core AI Assistant** ✅
+  - Qwen3:4b model integration
+  - GPU-accelerated inference (NVIDIA CUDA)
+  - CPU fallback support
+  - CLI and GTK3 GUI interfaces
 
-- **Phase 4**: Multi-GPU Support ✅
-  - Tensor and pipeline parallelism
-  - Load balancing strategies
-  - Multi-GPU API endpoints
-  - Comprehensive multi-GPU testing
+- **Command Security System** ✅
+  - Three-tier command validation
+  - Whitelist/blacklist enforcement
+  - Interactive user confirmation
+  - Safe subprocess execution
+  - pexpect sudo handling
+  - 20 comprehensive security tests
 
-- **Phase 5**: Quantization and Memory Management ✅
-  - Quantization support (INT8/FP16)
-  - Dynamic quantization and memory management
-  - Quantized model caching
-  - Performance benchmarking
-  - Memory optimization
+- **Desktop Integration** ✅
+  - GTK3 system tray application
+  - Single instance enforcement
+  - Persistent conversation history
+  - History management menu
+  - Native Linux integration
 
-- **Phase 6**: Advanced Inference Optimizations 🚧 (In Progress)
-  - Async API integration
-  - Advanced streaming and batching
-  - Inference monitoring and logging
-  - Performance profiling tools
+- **GPU Optimization** ✅
+  - CUDA GPU detection
+  - Automatic GPU/CPU selection
+  - System diagnostics tools
+  - Performance monitoring
 
-### 🎯 Upcoming Features
+### 🎯 Focus Areas
 
-- **Phase 6**: Advanced Inference Optimizations (Continuing)
-  - Async API integration
-  - Benchmarking and monitoring
-  - Performance profiling tools
-
-- **Phase 7**: Advanced Features
-  - Model fine-tuning support
-  - Custom model architectures
-  - Advanced caching strategies
-  - Distributed inference
-
-## Backend Selection
-
-The library automatically selects the best available backend:
-
-1. **AWS GPU Detection**: If running on AWS with GPU instances, optimizes for the specific GPU type
-2. **Local GPU**: Prefers ROCm (AMD) or CUDA (NVIDIA) if available
-3. **CPU Fallback**: Falls back to CPU if no GPU backends are available
+1. **AI Intelligence** - Qwen3 model with efficient local inference
+2. **Security** - Robust command validation and safe execution
+3. **Performance** - GPU acceleration for fast response times
+4. **Usability** - Intuitive CLI and GUI interfaces
 
 ## Performance Benchmarking
 
@@ -1726,27 +1677,29 @@ Monitor GPU and system resources during inference:
 python scripts/monitor_resources.py --interval 1 --duration 60
 ```
 
-## API Endpoints
+## Testing
 
-The production API server provides the following endpoints:
+Comprehensive test suite ensures security and reliability:
 
-### Core Endpoints
-- `POST /v1/completions` - Text completion
-- `POST /v1/chat/completions` - Chat completion
-- `POST /v1/models/load` - Load model
-- `GET /v1/models` - List available models
+### Command Security Tests
+```bash
+# Run security test suite
+source venv/bin/activate
+python -m pytest tests/test_command_security.py -v
+```
 
-### Multi-GPU Endpoints
-- `POST /v1/multi-gpu/config` - Configure multi-GPU setup
-- `GET /v1/multi-gpu/stats` - Get multi-GPU statistics
+**Test Coverage:**
+- ✅ Whitelist command validation (5 tests)
+- ✅ Blacklist command blocking (5 tests)
+- ✅ Interactive confirmation system (3 tests)
+- ✅ Sudo detection and handling (4 tests)
+- ✅ Complete security integration (3 tests)
 
-### Monitoring Endpoints
-- `GET /v1/monitor/queues` - Queue status
-- `GET /v1/monitor/batches` - Batch processing status
-- `GET /v1/monitor/workers` - Worker status
-
-### Streaming
-- `WebSocket /v1/stream` - Real-time streaming
+### Integration Tests
+```bash
+# Run all tests
+python tests/run_all_tests.py
+```
 
 ## Documentation
 

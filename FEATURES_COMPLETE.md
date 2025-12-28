@@ -1,103 +1,143 @@
-# All Features Complete! ✅
+# Llama-GPU AI Assistant - Feature Status ✅
 
-**Date**: November 12, 2025  
-**Status**: Ready to Use  
-**Reinstall Required**: ❌ NO
-
----
-
-## 🎉 Summary
-
-Your Llama GPU Assistant desktop application now has:
-
-1. ✅ **Single Instance Enforcement** - No more multiple tray icons
-2. ✅ **Persistent Conversation History** - Saves automatically
-3. ✅ **History Management Menu** - Save/Clear/Open Folder options
-
-**All features are active immediately - no reinstallation needed!**
+**Last Updated**: December 28, 2025  
+**Current Focus**: Qwen Model + GPU Acceleration + Command Security  
+**Status**: Production Ready
 
 ---
 
-## Why No Reinstall?
+## 🎯 Project Focus
 
-The desktop entry launches the source Python file directly:
+This project is a **local AI assistant** powered by:
+
+1. **Qwen3:4b Model** - Alibaba's efficient LLM for local inference
+2. **GPU Acceleration** - NVIDIA CUDA for fast token generation
+3. **Command Security** - Three-tier validation system for safe execution
+4. **Native Interfaces** - CLI and GTK3 GUI for Linux
+
+**Not Included**: Web interfaces, FastAPI servers, REST APIs, or Ollama integration
+
+---
+
+## ✅ Core Features Complete
+
+### 🤖 AI Model Integration
+- ✅ Qwen3:4b model loaded via PyTorch
+- ✅ GPU-accelerated inference (NVIDIA CUDA)
+- ✅ Automatic CPU fallback
+- ✅ Efficient token generation
+- ✅ Context-aware responses
+
+### 🔒 Command Security System
+- ✅ Three-tier validation (whitelist → blacklist → confirmation)
+- ✅ Safe command execution via subprocess
+- ✅ Interactive sudo handling with pexpect
+- ✅ 20 comprehensive security tests (all passing)
+- ✅ Protection against dangerous commands (rm -rf, dd, mkfs, etc.)
+- ✅ User confirmation for unknown commands
+
+### 🖥️ CLI Interface
+- ✅ Terminal-based AI agent (tools/ai_agent.py)
+- ✅ Beast Mode with autonomous operation
+- ✅ Command parsing from markdown code blocks
+- ✅ Real-time output capture
+- ✅ Interactive user prompts
+
+### 🖼️ Desktop GUI
+- ✅ GTK3 system tray application (tools/gui/ai_assistant_app.py)
+- ✅ Single instance enforcement (file locking)
+- ✅ Persistent conversation history (JSON storage)
+- ✅ History management menu (save/clear/open folder)
+- ✅ Native Linux integration
+- ✅ Always accessible from system tray
+
+### ⚡ GPU Optimization
+- ✅ NVIDIA CUDA GPU detection
+- ✅ Automatic GPU/CPU backend selection
+- ✅ System diagnostics tools
+- ✅ Hardware monitoring capabilities
+- ✅ Performance optimization for local inference
+
+---
+
+## 📁 Project Structure
 
 ```
-Desktop Entry → bin/llama-assistant → tools/gui/ai_assistant_app.py
+Llama-GPU/
+├── src/                           # Core package
+│   ├── utils/
+│   │   ├── gpu_detection.py      # GPU detection
+│   │   └── system_info.py        # Diagnostics
+│   └── llama_gpu.py              # Qwen model engine
+│
+├── tools/                         # User interfaces
+│   ├── ai_agent.py               # CLI agent
+│   ├── execution/
+│   │   ├── command_executor.py   # Safe execution
+│   │   └── sudo_executor.py      # pexpect sudo
+│   └── gui/
+│       └── ai_assistant_app.py   # GTK3 desktop app
+│
+├── tests/                         # Test suite
+│   └── test_command_security.py  # 20 security tests
+│
+├── config/                        # Configuration
+├── scripts/                       # Setup scripts
+├── docs/                          # Documentation
+└── examples/                      # Usage examples
 ```
-
-Any changes to the Python code take effect on next launch!
 
 ---
 
-## How to Use
+## 🚀 Usage
 
-### Launch the App
+### Launch CLI Agent
+```bash
+source venv/bin/activate
+python tools/ai_agent.py "check disk space"
+```
+
+### Launch Desktop GUI
 ```bash
 Super Key → Type "Llama GPU" → Click
+# Or run directly:
+python tools/gui/ai_assistant_app.py
 ```
 
-### Test Single Instance
-1. Launch the app
-2. Try launching again while it's running
-3. You should see: "AI Assistant Already Running" dialog ✅
-
-### Test Conversation History
-1. Chat with the AI: "Hello, how are you?"
-2. Close the app
-3. Reopen: Super Key → "Llama GPU"
-4. Your conversation should still be there! ✅
-
-### Use History Menu
-Right-click the chat window to see:
-
-```
-📚 History
-  ├─ 💾 Save History Now
-  ├─ 🗑️  Clear History
-  └─ 📁 Open History Folder
+### Test Security System
+```bash
+source venv/bin/activate
+python -m pytest tests/test_command_security.py -v
 ```
 
 ---
 
-## Files & Locations
+## 🔒 Security Features
 
-| Item | Location |
-|------|----------|
-| History File | `~/.config/llama-gpu-assistant/history.json` |
-| Lock File | `/tmp/llama-gpu-assistant.lock` |
-| Source Code | `tools/gui/ai_assistant_app.py` |
-| Desktop Entry | `~/.local/share/applications/llama-gpu-assistant.desktop` |
+### Command Validation Tiers
+
+1. **Whitelist** (Auto-approve):
+   - ls, pwd, cat, echo, grep, find, df, du, ps, top, etc.
+   
+2. **Blacklist** (Auto-block):
+   - rm -rf /, dd, mkfs, format, fdisk, parted
+   - Fork bombs: :(){ :|:& };:
+   - Dangerous piping: | bash, | sh
+
+3. **Interactive** (User confirmation):
+   - Unknown commands require explicit approval
+   - Clear description of what will be executed
+
+### Sudo Handling
+- Uses pexpect for interactive password prompts
+- Secure credential management
+- No plaintext password storage
 
 ---
 
-## Implementation Details
+## 📊 Test Results
 
-### Single Instance
-```python
-class SingleInstance:
-    """Prevents multiple app launches using file locking."""
-    - Lock file: /tmp/llama-gpu-assistant.lock
-    - Uses fcntl.flock() for exclusive locking
-    - Shows friendly dialog if already running
-```
-
-### Conversation History
-```python
-class ConversationHistory:
-    """Manages persistent chat history."""
-    - Storage: ~/.config/llama-gpu-assistant/history.json
-    - Format: JSON with timestamps
-    - Auto-saves on shutdown
-    - Auto-loads on startup
-```
-
-### History Menu
-```python
-# Menu handlers in AIAssistantApp class:
-- save_history_now()           # Manual save
-- clear_history_confirm()       # Clear with confirmation
-- open_history_folder()         # Open in file manager
+All 20 security tests passing:
 ```
 
 ---
