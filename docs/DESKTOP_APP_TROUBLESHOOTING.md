@@ -49,36 +49,36 @@ sudo apt-get install python3-gi gir1.2-gtk-3.0 gir1.2-appindicator3-0.1 gir1.2-n
 python3 tools/gui/floating_llm_button.py
 ```
 
-### 4. Ollama Not Available
+### 4. Model Loading Issues
 
-**Error:** "Ollama service not available"
+**Error:** "Failed to load model" or slow startup
 
 **Solution:**
 ```bash
-# Start Ollama
-ollama serve
+# Check CUDA availability
+python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
 
-# Or check if running
-ps aux | grep ollama
+# Check GPU memory
+nvidia-smi
 
-# Verify connection
-curl http://localhost:11434
+# Verify PyTorch installation
+python -c "import torch; print(f'PyTorch: {torch.__version__}')"
 ```
 
-### 5. Model Not Found
+### 5. GPU Not Detected
 
-**Error:** Model errors in chat
+**Error:** Model running slowly (CPU fallback)
 
 **Solution:**
 ```bash
-# List installed models
-ollama list
+# Check CUDA toolkit
+nvcc --version
 
-# Install phi4-mini
-ollama pull phi4-mini:3.8b
+# Reinstall PyTorch with CUDA support
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 
-# Install deepseek-r1
-ollama pull deepseek-r1:7b
+# Verify GPU detection
+python -c "import torch; print(f'GPU Count: {torch.cuda.device_count()}')"
 ```
 
 ### 6. Commands Not Executing
@@ -176,19 +176,16 @@ python3 -c "import gi; gi.require_version('Gtk', '3.0'); print('OK')"
 # 3. AppIndicator
 python3 -c "import gi; gi.require_version('AppIndicator3', '0.1'); print('OK')"
 
-# 4. Ollama
-curl http://localhost:11434
+# 4. PyTorch and CUDA
+python3 -c "import torch; print(f'PyTorch: {torch.__version__}, CUDA: {torch.cuda.is_available()}')"
 
-# 5. Models
-ollama list
+# 5. GPU Detection
+nvidia-smi
 
 # 6. Command executor
 python3 -c "from tools.execution.command_executor import SafeCommandExecutor; print('OK')"
 
-# 7. Ollama client
-python3 -c "from src.backends.ollama import OllamaClient; print('OK')"
-
-# 8. Syntax
+# 7. Syntax
 python3 -m py_compile tools/gui/ai_assistant_app.py
 ```
 
@@ -265,18 +262,17 @@ python3 tools/gui/ai_assistant_app.py
 # Clear any caches
 rm -rf ~/.cache/ai-assistant/
 
-# Reset Ollama (careful!)
-# ollama rm phi4-mini:3.8b
-# ollama pull phi4-mini:3.8b
+# Clear PyTorch cache
+rm -rf ~/.cache/huggingface/
 ```
 
 ## Known Limitations
 
-1. **Requires Ollama running** - App won't work without it
+1. **GPU Recommended** - CPU fallback is slower (3-5 tokens/sec)
 2. **GTK3 only** - No GTK4 support yet
 3. **Linux only** - Ubuntu/Debian tested
 4. **System tray** - May not work on all desktop environments
-5. **Memory** - Needs ~4GB RAM for models
+5. **Memory** - Needs ~6GB VRAM for optimal GPU performance
 
 ## Alternatives
 
@@ -312,7 +308,8 @@ If none of these solutions work:
    python3 --version
    uname -a
    echo $DESKTOP_SESSION
-   ollama --version
+   nvidia-smi
+   python3 -c "import torch; print(torch.__version__)"
    ```
 
 2. Run debug:
