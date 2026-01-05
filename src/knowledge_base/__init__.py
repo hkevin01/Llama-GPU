@@ -1,9 +1,9 @@
 """
-Knowledge Base Module for LLaMA-GPU
-Provides foundational knowledge libraries for AI models
+Knowledge Base Module for Llama-GPU
+Provides RAG-based knowledge retrieval for software engineering assistant
 """
 
-from .python_basics import PythonKnowledgeBase
-from .knowledge_loader import KnowledgeLoader
+from .rag_engine import RAGEngine
+from .knowledge_populator import KnowledgePopulator
 
-__all__ = ['PythonKnowledgeBase', 'KnowledgeLoader']
+__all__ = ['RAGEngine', 'KnowledgePopulator']

@@ -1,35 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background Circle -->
-  <circle cx="64" cy="64" r="60" fill="#667eea" stroke="#4c51bf" stroke-width="4"/>
+  <defs>
+    <!-- Gradient for GPU chip -->
+    <linearGradient id="chipGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Gradient for AI brain -->
+    <radialGradient id="brainGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#43e97b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#38f9d7;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- Glow effect -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
   
-  <!-- GPU Chip Base -->
-  <rect x="32" y="40" width="64" height="48" rx="4" fill="#1a202c" stroke="#2d3748" stroke-width="2"/>
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="#1e293b" opacity="0.95"/>
   
-  <!-- Circuit Lines -->
-  <line x1="32" y1="52" x2="20" y2="52" stroke="#48bb78" stroke-width="2"/>
-  <line x1="32" y1="64" x2="20" y2="64" stroke="#48bb78" stroke-width="2"/>
-  <line x1="32" y1="76" x2="20" y2="76" stroke="#48bb78" stroke-width="2"/>
+  <!-- GPU Chip base -->
+  <rect x="32" y="45" width="64" height="48" rx="6" fill="url(#chipGradient)" opacity="0.9"/>
   
-  <line x1="96" y1="52" x2="108" y2="52" stroke="#48bb78" stroke-width="2"/>
-  <line x1="96" y1="64" x2="108" y2="64" stroke="#48bb78" stroke-width="2"/>
-  <line x1="96" y1="76" x2="108" y2="76" stroke="#48bb78" stroke-width="2"/>
+  <!-- Chip pins (left) -->
+  <rect x="24" y="52" width="8" height="3" rx="1" fill="#94a3b8"/>
+  <rect x="24" y="62" width="8" height="3" rx="1" fill="#94a3b8"/>
+  <rect x="24" y="72" width="8" height="3" rx="1" fill="#94a3b8"/>
+  <rect x="24" y="82" width="8" height="3" rx="1" fill="#94a3b8"/>
   
-  <!-- AI Brain Symbol -->
-  <path d="M 48 52 Q 64 48 80 52" stroke="#f093fb" stroke-width="2.5" fill="none"/>
-  <path d="M 48 64 Q 64 60 80 64" stroke="#f093fb" stroke-width="2.5" fill="none"/>
-  <path d="M 48 76 Q 64 80 80 76" stroke="#f093fb" stroke-width="2.5" fill="none"/>
+  <!-- Chip pins (right) -->
+  <rect x="96" y="52" width="8" height="3" rx="1" fill="#94a3b8"/>
+  <rect x="96" y="62" width="8" height="3" rx="1" fill="#94a3b8"/>
+  <rect x="96" y="72" width="8" height="3" rx="1" fill="#94a3b8"/>
+  <rect x="96" y="82" width="8" height="3" rx="1" fill="#94a3b8"/>
   
-  <!-- Center Core -->
-  <circle cx="64" cy="64" r="8" fill="#43e97b" stroke="#38a169" stroke-width="2"/>
+  <!-- Chip circuits -->
+  <line x1="40" y1="60" x2="52" y2="60" stroke="#f1f5f9" stroke-width="1.5" opacity="0.6"/>
+  <line x1="46" y1="60" x2="46" y2="72" stroke="#f1f5f9" stroke-width="1.5" opacity="0.6"/>
+  <line x1="76" y1="65" x2="88" y2="65" stroke="#f1f5f9" stroke-width="1.5" opacity="0.6"/>
+  <line x1="82" y1="65" x2="82" y2="77" stroke="#f1f5f9" stroke-width="1.5" opacity="0.6"/>
   
-  <!-- Corner Dots (GPU pins) -->
-  <circle cx="36" cy="44" r="2" fill="#48bb78"/>
-  <circle cx="92" cy="44" r="2" fill="#48bb78"/>
-  <circle cx="36" cy="84" r="2" fill="#48bb78"/>
-  <circle cx="92" cy="84" r="2" fill="#48bb78"/>
+  <!-- AI Brain (cute character on top of chip) -->
+  <g filter="url(#glow)">
+    <!-- Brain body -->
+    <ellipse cx="64" cy="36" rx="20" ry="18" fill="url(#brainGradient)"/>
+    
+    <!-- Brain ridges (cute curves) -->
+    <path d="M 50 32 Q 54 28 58 32" stroke="#2dd4bf" stroke-width="2" fill="none" opacity="0.8"/>
+    <path d="M 70 32 Q 74 28 78 32" stroke="#2dd4bf" stroke-width="2" fill="none" opacity="0.8"/>
+    <path d="M 58 38 Q 64 34 70 38" stroke="#2dd4bf" stroke-width="2" fill="none" opacity="0.8"/>
+    
+    <!-- Cute eyes -->
+    <circle cx="57" cy="35" r="3" fill="#1e293b"/>
+    <circle cx="71" cy="35" r="3" fill="#1e293b"/>
+    
+    <!-- Eye highlights (sparkle) -->
+    <circle cx="58" cy="34" r="1.2" fill="#ffffff"/>
+    <circle cx="72" cy="34" r="1.2" fill="#ffffff"/>
+    
+    <!-- Happy smile -->
+    <path d="M 56 40 Q 64 44 72 40" stroke="#1e293b" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
   
-  <!-- Lightning Bolt (Power/Speed) -->
-  <path d="M 58 96 L 62 106 L 58 106 L 62 116 L 54 106 L 58 106 Z" fill="#ffd700" stroke="#f59e0b" stroke-width="1"/>
-  <path d="M 70 96 L 74 106 L 70 106 L 74 116 L 66 106 L 70 106 Z" fill="#ffd700" stroke="#f59e0b" stroke-width="1"/>
+  <!-- Energy particles/sparkles around the icon -->
+  <circle cx="20" cy="30" r="2" fill="#fbbf24" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="108" cy="35" r="2.5" fill="#60a5fa" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="25" cy="95" r="2" fill="#a78bfa" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="103" cy="98" r="2.5" fill="#34d399" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Small "Q" badge for Qwen -->
+  <circle cx="92" cy="24" r="12" fill="#f97316" opacity="0.95"/>
+  <text x="92" y="29" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">Q</text>
 </svg>

@@ -1265,6 +1265,161 @@ python3 -c "import torch; print('GPU available:', torch.cuda.is_available())"
 
 ---
 
+## 📚 Dependencies
+
+### Core Dependencies
+
+#### **AI/ML & Deep Learning**
+| Package         | Version | Purpose                                                    |
+| --------------- | ------- | ---------------------------------------------------------- |
+| `torch`         | ≥2.0.0  | PyTorch framework for model inference and GPU acceleration |
+| `transformers`  | ≥4.30.0 | Hugging Face transformers for LLM models (Qwen, etc.)      |
+| `sentencepiece` | ≥0.1.99 | Tokenization for transformer models                        |
+| `accelerate`    | ≥0.20.0 | Optimized model loading and multi-GPU support              |
+| `datasets`      | ≥2.12.0 | Dataset management and loading                             |
+| `safetensors`   | Latest  | Safe tensor storage format                                 |
+
+#### **RAG & Knowledge Base**
+| Package                 | Version | Purpose                                               |
+| ----------------------- | ------- | ----------------------------------------------------- |
+| `chromadb`              | ≥0.4.22 | Vector database for semantic search and RAG           |
+| `sentence-transformers` | ≥2.2.2  | Embeddings for semantic similarity (all-MiniLM-L6-v2) |
+| `langchain`             | ≥0.1.0  | LLM application framework                             |
+| `langchain-community`   | ≥0.0.10 | Community integrations for LangChain                  |
+| `langchain-chroma`      | ≥0.1.0  | ChromaDB integration for LangChain                    |
+
+#### **Code Analysis & Quality**
+| Package       | Version  | Purpose                                                     |
+| ------------- | -------- | ----------------------------------------------------------- |
+| `radon`       | ≥6.0.1   | Code complexity metrics (cyclomatic, maintainability index) |
+| `pylint`      | ≥3.0.0   | Python code linting                                         |
+| `black`       | ≥23.12.0 | Code formatting                                             |
+| `isort`       | ≥5.13.0  | Import sorting                                              |
+| `ast-grep-py` | ≥0.12.0  | AST-based code search                                       |
+
+#### **Data Processing & Scientific Computing**
+| Package        | Version | Purpose                        |
+| -------------- | ------- | ------------------------------ |
+| `numpy`        | ≥1.24.0 | Numerical computing            |
+| `pandas`       | ≥2.0.0  | Data manipulation and analysis |
+| `scikit-learn` | ≥1.3.0  | Machine learning utilities     |
+| `scipy`        | Latest  | Scientific computing           |
+| `matplotlib`   | ≥3.7.0  | Data visualization             |
+| `seaborn`      | ≥0.12.0 | Statistical data visualization |
+
+#### **System & Utilities**
+| Package         | Version | Purpose                                         |
+| --------------- | ------- | ----------------------------------------------- |
+| `psutil`        | ≥5.9.0  | System monitoring and process management        |
+| `GPUtil`        | ≥1.4.0  | GPU monitoring and management                   |
+| `pexpect`       | ≥4.8.0  | Interactive command execution with sudo support |
+| `python-dotenv` | ≥1.0.1  | Environment variable management                 |
+| `tqdm`          | ≥4.65.0 | Progress bars                                   |
+| `requests`      | ≥2.31.0 | HTTP library                                    |
+
+#### **Documentation & Parsing**
+| Package          | Version | Purpose                     |
+| ---------------- | ------- | --------------------------- |
+| `beautifulsoup4` | ≥4.12.0 | HTML/XML parsing            |
+| `markdownify`    | ≥0.11.6 | HTML to Markdown conversion |
+| `pypdf`          | ≥3.17.0 | PDF processing              |
+
+#### **Testing & Development**
+| Package          | Version | Purpose                           |
+| ---------------- | ------- | --------------------------------- |
+| `pytest`         | ≥7.4.0  | Testing framework                 |
+| `pytest-asyncio` | ≥0.21.0 | Async test support                |
+| `pytest-mock`    | ≥3.11.0 | Mocking for tests                 |
+| `boto3`          | ≥1.28.0 | AWS SDK (optional cloud features) |
+
+### GPU Acceleration (Optional)
+
+#### **NVIDIA CUDA Support**
+| Package     | Version  | Purpose                                |
+| ----------- | -------- | -------------------------------------- |
+| `cudf-cu11` | ≥21.10.0 | GPU-accelerated dataframes (CUDA 11.x) |
+| `numba`     | ≥0.54.0  | JIT compilation with CUDA support      |
+
+**Note**: CUDA packages are automatically installed with PyTorch if CUDA is detected. Additional CUDA packages:
+- `nvidia-cublas-cu12`
+- `nvidia-cuda-runtime-cu12`
+- `nvidia-cudnn-cu12`
+- And other NVIDIA runtime libraries
+
+### System Requirements
+
+#### **Minimum Requirements**
+- **OS**: Ubuntu 20.04+ / Debian 11+ (or compatible Linux distribution)
+- **Python**: 3.10 or higher
+- **RAM**: 8 GB (16 GB recommended)
+- **Storage**: 5 GB free space
+- **CPU**: Multi-core processor (4+ cores recommended)
+
+#### **For GPU Acceleration**
+- **GPU**: NVIDIA GPU with CUDA 11.8+ support
+- **VRAM**: 4 GB minimum (8 GB+ recommended)
+- **Driver**: NVIDIA driver 520+
+- **CUDA**: CUDA Toolkit 11.8 or 12.x
+
+#### **For Desktop GUI**
+- **Display Server**: X11 or Wayland
+- **GTK**: GTK 3.0+
+- **System Libraries**: libappindicator3, libnotify
+
+### Installation Methods
+
+#### **Standard Installation**
+```bash
+pip install -r requirements.txt
+```
+
+#### **Development Installation**
+```bash
+pip install -r requirements-dev.txt
+pip install -e .
+```
+
+#### **Minimal Installation (Core Only)**
+```bash
+pip install torch transformers sentencepiece accelerate numpy psutil pexpect
+```
+
+#### **With RAG Features**
+```bash
+pip install torch transformers chromadb sentence-transformers langchain radon
+```
+
+### Storage Requirements
+
+| Component                 | Size    | Purpose                             |
+| ------------------------- | ------- | ----------------------------------- |
+| **Python Packages**       | ~3.5 GB | All dependencies installed          |
+| **PyTorch + CUDA**        | ~2.8 GB | Deep learning framework             |
+| **Sentence Transformers** | ~190 MB | Embedding models (all-MiniLM-L6-v2) |
+| **ChromaDB Vector Store** | ~50 MB  | Knowledge base storage              |
+| **LLM Model (Qwen-3B)**   | ~2.5 GB | Language model weights              |
+| **Total**                 | ~8-9 GB | Complete installation               |
+
+### Dependency Management
+
+All dependencies are specified in:
+- **`requirements.txt`**: Core runtime dependencies
+- **`requirements-dev.txt`**: Development and testing dependencies
+- **`pyproject.toml`**: Project metadata and build configuration
+
+To check installed versions:
+```bash
+pip list
+pip show torch transformers chromadb
+```
+
+To update dependencies:
+```bash
+pip install --upgrade -r requirements.txt
+```
+
+---
+
 ## 🏗️ Project Structure
 
 ```
