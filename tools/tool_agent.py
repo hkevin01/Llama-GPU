@@ -16,6 +16,12 @@ from dataclasses import dataclass
 sys.path.insert(0, "/home/kevin/Projects/Llama-GPU")
 
 from src.backends.ollama import OllamaClient
+from tools.execution.command_policy import CommandSecurityPolicy
+
+try:
+    from tools.execution.sudo_executor import SudoExecutor
+except ImportError:
+    SudoExecutor = None
 
 
 @dataclass
@@ -44,7 +50,11 @@ class ToolRegistry:
         # Run shell command tool
         self.register(
             name="run_command",
-            description="Execute a shell command on the Ubuntu system. Use this to run terminal commands like ls, cat, grep, find, python3, etc.",
+            description=(
+                "Execute a non-privileged shell command on the Ubuntu system. "
+                "This tool blocks harmful commands and does not allow privileged "
+                "(root/sudo) operations."
+            ),
             parameters={
                 "type": "object",
                 "properties": {
@@ -60,6 +70,33 @@ class ToolRegistry:
                 "required": ["command"]
             },
             handler=self._handle_run_command
+        )
+
+        self.register(
+            name="run_privileged_command",
+            description=(
+                "Execute a privileged/root command only after explicit approval. "
+                "Use this tool for commands that require sudo (apt, systemctl, etc.)."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "command": {
+                        "type": "string",
+                        "description": "The privileged command to execute"
+                    },
+                    "approved_action": {
+                        "type": "boolean",
+                        "description": "Must be true to authorize privileged execution"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "description": "Short explanation of why privileged execution is needed"
+                    }
+                },
+                "required": ["command", "approved_action"]
+            },
+            handler=self._handle_run_privileged_command
         )
 
         # Read file tool
@@ -169,11 +206,14 @@ class ToolRegistry:
         command = args.get("command", "")
         cwd = args.get("working_directory", os.getcwd())
 
-        # Safety check for dangerous commands
-        dangerous = ["rm -rf /", "mkfs", "dd if=", ":(){ :|:& };:"]
-        for d in dangerous:
-            if d in command:
-                return f"ERROR: Dangerous command blocked: {command}"
+        decision = CommandSecurityPolicy.evaluate(command)
+        if decision.blocked:
+            return f"ERROR: {decision.reason}"
+        if decision.privileged:
+            return (
+                "ERROR: Privileged command blocked in run_command. "
+                "Use run_privileged_command with approved_action=true."
+            )
 
         try:
             result = subprocess.run(
@@ -196,6 +236,39 @@ class ToolRegistry:
             return "ERROR: Command timed out after 30 seconds"
         except Exception as e:
             return f"ERROR: {str(e)}"
+
+    def _handle_run_privileged_command(self, args: Dict[str, Any]) -> str:
+        """Execute a privileged command with explicit approval enforcement."""
+        command = args.get("command", "")
+        approved_action = bool(args.get("approved_action", False))
+
+        if not approved_action:
+            return (
+                "ERROR: Privileged command denied. "
+                "Set approved_action=true only after explicit user approval."
+            )
+
+        decision = CommandSecurityPolicy.evaluate(command)
+        if decision.blocked:
+            return f"ERROR: {decision.reason}"
+        if not decision.privileged:
+            return (
+                "ERROR: Command is not privileged. "
+                "Use run_command for non-privileged commands."
+            )
+
+        if SudoExecutor is None:
+            return (
+                "ERROR: Privileged execution is unavailable. "
+                "Install pexpect to enable sudo command handling."
+            )
+
+        executor = SudoExecutor(cache_password=True)
+        result = executor.execute(command, confirm=False)
+
+        if result.success:
+            return result.output.strip() or "(no output)"
+        return f"ERROR: {result.error or f'Exit code: {result.exit_code}'}"
 
     def _handle_read_file(self, args: Dict[str, Any]) -> str:
         """Read a file."""
@@ -236,7 +309,8 @@ When the user asks you to perform actions on the system (list files, run command
 USE THE APPROPRIATE TOOL instead of just explaining what command to run.
 
 Available tools:
-- run_command: Execute shell commands (ls, cat, grep, python3, etc.)
+- run_command: Execute non-privileged shell commands (safe path)
+- run_privileged_command: Execute privileged/root commands with explicit approval
 - read_file: Read file contents
 - write_file: Write content to files
 - list_directory: List directory contents
@@ -244,7 +318,8 @@ Available tools:
 IMPORTANT:
 - When asked to list files, USE list_directory or run_command with 'ls'
 - When asked to read a file, USE read_file
-- When asked to run a command, USE run_command
+- When asked to run normal commands, USE run_command
+- When a command requires root access, use run_privileged_command only after explicit user approval
 - Always use tools for actions, don't just explain
 
 Current working directory: {cwd}

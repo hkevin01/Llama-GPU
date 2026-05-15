@@ -11,6 +11,7 @@ import getpass
 import pexpect
 from typing import Optional, Tuple
 from dataclasses import dataclass
+from tools.execution.command_policy import CommandSecurityPolicy
 
 
 @dataclass
@@ -65,6 +66,9 @@ class SudoExecutor:
 
     def is_dangerous(self, command: str) -> bool:
         """Check if command is extremely dangerous."""
+        decision = CommandSecurityPolicy.evaluate(command)
+        if decision.blocked:
+            return True
         cmd_lower = command.lower().strip()
         return any(dangerous in cmd_lower for dangerous in self.NEVER_ALLOW)
 
@@ -286,7 +290,8 @@ class SudoExecutor:
             SudoResult with execution details
         """
         # Check if command needs sudo
-        needs_sudo = command.strip().startswith('sudo ') or any(
+        policy_decision = CommandSecurityPolicy.evaluate(command)
+        needs_sudo = policy_decision.privileged or command.strip().startswith('sudo ') or any(
             command.strip().startswith(cmd) for cmd in [
                 'apt', 'apt-get', 'systemctl', 'service',
                 'useradd', 'userdel', 'usermod', 'passwd',
