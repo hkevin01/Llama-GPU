@@ -67,14 +67,14 @@ tools/ai -m deepseek-r1:7b "complex analysis"
 
 ## Documentation
 
-| Doc | Purpose | Location |
+| <sub>Doc</sub> | <sub>Purpose</sub> | <sub>Location</sub> |
 |-----|---------|----------|
-| 📖 Quick Start | TL;DR | [AI_AGENT_QUICKSTART.md](docs/AI_AGENT_QUICKSTART.md) |
-| 📚 Full Guide | Complete reference | [AI_AGENT_GUIDE.md](docs/AI_AGENT_GUIDE.md) |
-| 🖥️ Desktop App | GUI usage | [DESKTOP_APP_GUIDE.md](docs/DESKTOP_APP_GUIDE.md) |
-| 📋 Summary | What changed | [AI_UPGRADE_COMPLETE.md](docs/AI_UPGRADE_COMPLETE.md) |
-| ✅ Status | Checklist | [AI_UPGRADE_STATUS.md](AI_UPGRADE_STATUS.md) |
-| 📁 Manifest | All files | [AI_UPGRADE_MANIFEST.md](AI_UPGRADE_MANIFEST.md) |
+| <sub>📖 Quick Start</sub> | <sub>TL;DR</sub> | <sub>[AI_AGENT_QUICKSTART.md](docs/AI_AGENT_QUICKSTART.md)</sub> |
+| <sub>📚 Full Guide</sub> | <sub>Complete reference</sub> | <sub>[AI_AGENT_GUIDE.md](docs/AI_AGENT_GUIDE.md)</sub> |
+| <sub>🖥️ Desktop App</sub> | <sub>GUI usage</sub> | <sub>[DESKTOP_APP_GUIDE.md](docs/DESKTOP_APP_GUIDE.md)</sub> |
+| <sub>📋 Summary</sub> | <sub>What changed</sub> | <sub>[AI_UPGRADE_COMPLETE.md](docs/AI_UPGRADE_COMPLETE.md)</sub> |
+| <sub>✅ Status</sub> | <sub>Checklist</sub> | <sub>[AI_UPGRADE_STATUS.md](AI_UPGRADE_STATUS.md)</sub> |
+| <sub>📁 Manifest</sub> | <sub>All files</sub> | <sub>[AI_UPGRADE_MANIFEST.md](AI_UPGRADE_MANIFEST.md)</sub> |
 
 ## Key Features
 
@@ -168,10 +168,10 @@ tools/ai -i
 
 ## Models
 
-| Model | Speed | Quality | Use When |
+| <sub>Model</sub> | <sub>Speed</sub> | <sub>Quality</sub> | <sub>Use When</sub> |
 |-------|-------|---------|----------|
-| phi4-mini:3.8b | ⚡⚡⚡ | ⭐⭐⭐ | Quick tasks (default) |
-| deepseek-r1:7b | ⚡⚡ | ⭐⭐⭐⭐ | Complex reasoning |
+| <sub>phi4-mini:3.8b</sub> | <sub>⚡⚡⚡</sub> | <sub>⭐⭐⭐</sub> | <sub>Quick tasks (default)</sub> |
+| <sub>deepseek-r1:7b</sub> | <sub>⚡⚡</sub> | <sub>⭐⭐⭐⭐</sub> | <sub>Complex reasoning</sub> |
 
 ## Support
 
