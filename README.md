@@ -45,14 +45,14 @@ Llama-GPU provides a local AI assistant with Qwen models that safely executes te
 
 ### 🎭 Why Llama-GPU?
 
-| Challenge                | Why It Matters                                                       | Our Solution                                                                                     | Technical Implementation                  |
+| <sub>Challenge</sub> | <sub>Why It Matters</sub> | <sub>Our Solution</sub> | <sub>Technical Implementation</sub> |
 | ------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------- |
-| **Command Execution**    | LLMs suggest commands but can't execute them safely (security risk)  | Safe command validator with whitelist/blacklist, sudo support with password handling via pexpect | pexpect + regex validation + confirmation |
-| **Multiple Interfaces**  | CLI users want terminal, end-users want GUI                          | CLI agent (tools/ai_agent.py) and native GTK3 desktop app with system tray integration           | GTK3 + AppIndicator3 + Python argparse    |
-| **Developer Experience** | Debugging LLM issues requires logs, metrics, and testing tools       | Comprehensive logging, performance benchmarks, diagnostics, and test suite                       | Python logging + pytest + custom monitors |
-| **Model Performance**    | Default LLM settings produce slow, verbose responses                 | Qwen3 with optimized temperature/top_p for fast, focused responses                               | Tuned inference parameters + brief prompt |
-| **Security Concerns**    | AI executing arbitrary commands risks system damage                  | Three-tier security: whitelist validation + user confirmation + dangerous command blocking       | Multi-layer validation + safe execution   |
-| **Complex Setup**        | Users waste hours with dependencies, GPU drivers, and configurations | Simple Python environment with automatic dependency resolution and GPU detection                 | Shell scripts + Python environment checks |
+| <sub>**Command Execution**</sub> | <sub>LLMs suggest commands but can't execute them safely (security risk)</sub> | <sub>Safe command validator with whitelist/blacklist, sudo support with password handling via pexpect</sub> | <sub>pexpect + regex validation + confirmation</sub> |
+| <sub>**Multiple Interfaces**</sub> | <sub>CLI users want terminal, end-users want GUI</sub> | <sub>CLI agent (tools/ai_agent.py) and native GTK3 desktop app with system tray integration</sub> | <sub>GTK3 + AppIndicator3 + Python argparse</sub> |
+| <sub>**Developer Experience**</sub> | <sub>Debugging LLM issues requires logs, metrics, and testing tools</sub> | <sub>Comprehensive logging, performance benchmarks, diagnostics, and test suite</sub> | <sub>Python logging + pytest + custom monitors</sub> |
+| <sub>**Model Performance**</sub> | <sub>Default LLM settings produce slow, verbose responses</sub> | <sub>Qwen3 with optimized temperature/top_p for fast, focused responses</sub> | <sub>Tuned inference parameters + brief prompt</sub> |
+| <sub>**Security Concerns**</sub> | <sub>AI executing arbitrary commands risks system damage</sub> | <sub>Three-tier security: whitelist validation + user confirmation + dangerous command blocking</sub> | <sub>Multi-layer validation + safe execution</sub> |
+| <sub>**Complex Setup**</sub> | <sub>Users waste hours with dependencies, GPU drivers, and configurations</sub> | <sub>Simple Python environment with automatic dependency resolution and GPU detection</sub> | <sub>Shell scripts + Python environment checks</sub> |
 
 ### 🚀 Key Innovations
 
@@ -269,10 +269,10 @@ flowchart TD
 
 ### 🎨 Multiple Interfaces
 
-| Interface      | Technology           | Use Case                                   |
+| <sub>Interface</sub> | <sub>Technology</sub> | <sub>Use Case</sub> |
 | -------------- | -------------------- | ------------------------------------------ |
-| **CLI Agent**  | Python + argparse    | Terminal workflows, automation, scripting  |
-| **Native GUI** | GTK3 + AppIndicator3 | System tray integration, always accessible |
+| <sub>**CLI Agent**</sub> | <sub>Python + argparse</sub> | <sub>Terminal workflows, automation, scripting</sub> |
+| <sub>**Native GUI**</sub> | <sub>GTK3 + AppIndicator3</sub> | <sub>System tray integration, always accessible</sub> |
 
 ### 🔧 AI Model Integration
 
@@ -287,13 +287,13 @@ flowchart TD
 
 We've fine-tuned the model's generation parameters to optimize it as a responsive assistant rather than using default LLM settings:
 
-| Parameter        | Default | Our Value | Reason                                                 |
+| <sub>Parameter</sub> | <sub>Default</sub> | <sub>Our Value</sub> | <sub>Reason</sub> |
 | ---------------- | ------- | --------- | ------------------------------------------------------ |
-| `temperature`    | 0.7     | **0.4**   | Lower randomness = more focused, predictable responses |
-| `top_p`          | 0.9     | **0.8**   | Narrower sampling = reduces wandering text             |
-| `repeat_penalty` | 1.0     | **1.15**  | Discourages repetitive phrasing                        |
-| `max_tokens`     | 2048    | **600**   | Enforces conciseness, faster generation                |
-| `think`          | true    | **false** | Disables internal reasoning output for speed           |
+| <sub>`temperature`</sub> | <sub>0.7</sub> | <sub>**0.4**</sub> | <sub>Lower randomness = more focused, predictable responses</sub> |
+| <sub>`top_p`</sub> | <sub>0.9</sub> | <sub>**0.8**</sub> | <sub>Narrower sampling = reduces wandering text</sub> |
+| <sub>`repeat_penalty`</sub> | <sub>1.0</sub> | <sub>**1.15**</sub> | <sub>Discourages repetitive phrasing</sub> |
+| <sub>`max_tokens`</sub> | <sub>2048</sub> | <sub>**600**</sub> | <sub>Enforces conciseness, faster generation</sub> |
+| <sub>`think`</sub> | <sub>true</sub> | <sub>**false**</sub> | <sub>Disables internal reasoning output for speed</sub> |
 
 **System Prompt Tuning:**
 
@@ -325,12 +325,12 @@ response = ollama.chat(
 ```
 
 **Performance Results:**
-| Metric            | Before Tuning | After Tuning | Improvement     |
+| <sub>Metric</sub> | <sub>Before Tuning</sub> | <sub>After Tuning</sub> | <sub>Improvement</sub> |
 | ----------------- | ------------- | ------------ | --------------- |
-| Avg Response Time | 3-5s          | 1-2s         | 2-3x faster     |
-| Token Count       | 200-400       | 80-150       | 50% reduction   |
-| Command Accuracy  | 75%           | 92%          | +17%            |
-| Repetition Rate   | High          | Low          | Minimal repeats |
+| <sub>Avg Response Time</sub> | <sub>3-5s</sub> | <sub>1-2s</sub> | <sub>2-3x faster</sub> |
+| <sub>Token Count</sub> | <sub>200-400</sub> | <sub>80-150</sub> | <sub>50% reduction</sub> |
+| <sub>Command Accuracy</sub> | <sub>75%</sub> | <sub>92%</sub> | <sub>+17%</sub> |
+| <sub>Repetition Rate</sub> | <sub>High</sub> | <sub>Low</sub> | <sub>Minimal repeats</sub> |
 
 **Performance Benchmarks:**
 | Question Type | Example                | Response Time |
@@ -678,13 +678,13 @@ class SudoExecutor:
 
 **Key Technologies:**
 
-| Technology              | Purpose                     | Why Chosen                                               |
+| <sub>Technology</sub> | <sub>Purpose</sub> | <sub>Why Chosen</sub> |
 | ----------------------- | --------------------------- | -------------------------------------------------------- |
-| **pexpect**             | Interactive process control | Only library that can handle `/dev/tty` password prompts |
-| **sudo -S**             | Read password from stdin    | Allows programmatic password entry                       |
-| **Password Caching**    | Session-based storage       | Avoids repeated prompts (UX improvement)                 |
-| **Real-time Streaming** | Output as it happens        | User sees progress for long operations                   |
-| **Timeout Management**  | Prevent hanging             | Kills processes that run too long                        |
+| <sub>**pexpect**</sub> | <sub>Interactive process control</sub> | <sub>Only library that can handle `/dev/tty` password prompts</sub> |
+| <sub>**sudo -S**</sub> | <sub>Read password from stdin</sub> | <sub>Allows programmatic password entry</sub> |
+| <sub>**Password Caching**</sub> | <sub>Session-based storage</sub> | <sub>Avoids repeated prompts (UX improvement)</sub> |
+| <sub>**Real-time Streaming**</sub> | <sub>Output as it happens</sub> | <sub>User sees progress for long operations</sub> |
+| <sub>**Timeout Management**</sub> | <sub>Prevent hanging</sub> | <sub>Kills processes that run too long</sub> |
 
 **Why pexpect Over Alternatives:**
 
@@ -975,14 +975,14 @@ $ sudo apt update && sudo apt upgrade -y"
 
 ### 🔐 Security Features
 
-| Feature                        | Implementation              | Purpose                            |
+| <sub>Feature</sub> | <sub>Implementation</sub> | <sub>Purpose</sub> |
 | ------------------------------ | --------------------------- | ---------------------------------- |
-| **Command Validation**         | Regex + whitelist/blacklist | Prevent malicious commands         |
-| **Sudo Confirmation**          | Interactive prompts         | User awareness for root operations |
-| **Dangerous Command Blocking** | Hard-coded blacklist        | Protect against system damage      |
-| **Output Truncation**          | 5000 char limit             | Prevent memory exhaustion          |
-| **Session Timeout**            | 300s default                | Prevent hanging processes          |
-| **API Key Support**            | Bearer token auth           | Secure API access                  |
+| <sub>**Command Validation**</sub> | <sub>Regex + whitelist/blacklist</sub> | <sub>Prevent malicious commands</sub> |
+| <sub>**Sudo Confirmation**</sub> | <sub>Interactive prompts</sub> | <sub>User awareness for root operations</sub> |
+| <sub>**Dangerous Command Blocking**</sub> | <sub>Hard-coded blacklist</sub> | <sub>Protect against system damage</sub> |
+| <sub>**Output Truncation**</sub> | <sub>5000 char limit</sub> | <sub>Prevent memory exhaustion</sub> |
+| <sub>**Session Timeout**</sub> | <sub>300s default</sub> | <sub>Prevent hanging processes</sub> |
+| <sub>**API Key Support**</sub> | <sub>Bearer token auth</sub> | <sub>Secure API access</sub> |
 
 ---
 
@@ -1045,16 +1045,16 @@ mindmap
 
 Each technology in our stack was chosen for specific technical reasons. Here's why:
 
-| Component             | Technology           | What It Is                                           | Why We Chose It                                                                                                                                         | How It Works                                                                            | Measured Impact                                                                            |
+| <sub>Component</sub> | <sub>Technology</sub> | <sub>What It Is</sub> | <sub>Why We Chose It</sub> | <sub>How It Works</sub> | <sub>Measured Impact</sub> |
 | --------------------- | -------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| **AI Model**          | Qwen3 (4B)           | Compact LLM optimized for conversation and reasoning | • Small size (2.5GB) runs on consumer hardware<br/>• Fast inference<br/>• Good reasoning capabilities<br/>• Supports both chat and command generation   | Model loaded → PyTorch inference → Token generation → Response decoded                  | • Fast responses<br/>• Low VRAM usage<br/>• Good accuracy                                  |
-| **GUI Framework**     | GTK3 + AppIndicator3 | Native Linux GUI toolkit for desktop applications    | • Native look and feel on Ubuntu/GNOME<br/>• System tray integration<br/>• Low memory footprint (20-30MB)<br/>• No Electron overhead                    | GTK main loop → event handlers → widget updates → GLib threading → UI render            | • <30MB RAM usage<br/>• Native system integration<br/>• Startup time <1s                   |
-| **Sudo Handler**      | pexpect              | Python library for controlling interactive programs  | • Only library that can handle sudo password prompts<br/>• PTY control for interactive sessions<br/>• Timeout and pattern matching<br/>• Cross-platform | spawn(sudo) → expect("password:") → sendline(password) → wait for output → parse result | • 100% sudo command success<br/>• Password cached per session<br/>• Timeout prevents hangs |
-| **GPU Backend**       | CUDA (PyTorch)       | NVIDIA's parallel computing platform                 | • Industry standard with best support<br/>• Mature ecosystem (cuDNN)<br/>• PyTorch primary target platform<br/>• Stable drivers                         | CUDA context → device memory alloc → kernel launch → tensor ops → sync → result copy    | • GPU acceleration<br/>• Stable performance<br/>• Wide compatibility                       |
-| **Model Framework**   | PyTorch              | Deep learning framework for model inference          | • Industry standard for LLMs<br/>• Excellent CUDA support<br/>• Easy model loading<br/>• Active community                                               | Load model → Move to GPU → Forward pass → Generate tokens                               | • GPU/CPU flexibility<br/>• Good performance<br/>• Wide model support                      |
-| **CLI Framework**     | argparse             | Python argument parsing (standard library)           | • Standard library (no dependencies)<br/>• Simple and reliable<br/>• Cross-platform terminal support                                                    | argparse.parse_args() → validate → execute command                                      | • Clear help messages<br/>• No extra dependencies<br/>• Reliable                           |
-| **Command Execution** | subprocess           | Python standard library for process management       | • Safe command execution<br/>• Output capture<br/>• Timeout support<br/>• Standard library                                                              | subprocess.run() → capture stdout/stderr → return result                                | • Safe execution<br/>• Timeout protection<br/>• Error handling                             |
-| **Logging**           | Python logging       | Standard library logging framework                   | • Built-in, no dependencies<br/>• Flexible configuration<br/>• Multiple handlers<br/>• Log rotation support                                             | Logger → Handler → Formatter → Output                                                   | • Complete audit trail<br/>• Debug capability<br/>• Error tracking                         |
+| <sub>**AI Model**</sub> | <sub>Qwen3 (4B)</sub> | <sub>Compact LLM optimized for conversation and reasoning</sub> | <sub>• Small size (2.5GB) runs on consumer hardware<br/>• Fast inference<br/>• Good reasoning capabilities<br/>• Supports both chat and command generation</sub> | <sub>Model loaded → PyTorch inference → Token generation → Response decoded</sub> | <sub>• Fast responses<br/>• Low VRAM usage<br/>• Good accuracy</sub> |
+| <sub>**GUI Framework**</sub> | <sub>GTK3 + AppIndicator3</sub> | <sub>Native Linux GUI toolkit for desktop applications</sub> | <sub>• Native look and feel on Ubuntu/GNOME<br/>• System tray integration<br/>• Low memory footprint (20-30MB)<br/>• No Electron overhead</sub> | <sub>GTK main loop → event handlers → widget updates → GLib threading → UI render</sub> | <sub>• <30MB RAM usage<br/>• Native system integration<br/>• Startup time <1s</sub> |
+| <sub>**Sudo Handler**</sub> | <sub>pexpect</sub> | <sub>Python library for controlling interactive programs</sub> | <sub>• Only library that can handle sudo password prompts<br/>• PTY control for interactive sessions<br/>• Timeout and pattern matching<br/>• Cross-platform</sub> | <sub>spawn(sudo) → expect("password:") → sendline(password) → wait for output → parse result</sub> | <sub>• 100% sudo command success<br/>• Password cached per session<br/>• Timeout prevents hangs</sub> |
+| <sub>**GPU Backend**</sub> | <sub>CUDA (PyTorch)</sub> | <sub>NVIDIA's parallel computing platform</sub> | <sub>• Industry standard with best support<br/>• Mature ecosystem (cuDNN)<br/>• PyTorch primary target platform<br/>• Stable drivers</sub> | <sub>CUDA context → device memory alloc → kernel launch → tensor ops → sync → result copy</sub> | <sub>• GPU acceleration<br/>• Stable performance<br/>• Wide compatibility</sub> |
+| <sub>**Model Framework**</sub> | <sub>PyTorch</sub> | <sub>Deep learning framework for model inference</sub> | <sub>• Industry standard for LLMs<br/>• Excellent CUDA support<br/>• Easy model loading<br/>• Active community</sub> | <sub>Load model → Move to GPU → Forward pass → Generate tokens</sub> | <sub>• GPU/CPU flexibility<br/>• Good performance<br/>• Wide model support</sub> |
+| <sub>**CLI Framework**</sub> | <sub>argparse</sub> | <sub>Python argument parsing (standard library)</sub> | <sub>• Standard library (no dependencies)<br/>• Simple and reliable<br/>• Cross-platform terminal support</sub> | <sub>argparse.parse_args() → validate → execute command</sub> | <sub>• Clear help messages<br/>• No extra dependencies<br/>• Reliable</sub> |
+| <sub>**Command Execution**</sub> | <sub>subprocess</sub> | <sub>Python standard library for process management</sub> | <sub>• Safe command execution<br/>• Output capture<br/>• Timeout support<br/>• Standard library</sub> | <sub>subprocess.run() → capture stdout/stderr → return result</sub> | <sub>• Safe execution<br/>• Timeout protection<br/>• Error handling</sub> |
+| <sub>**Logging**</sub> | <sub>Python logging</sub> | <sub>Standard library logging framework</sub> | <sub>• Built-in, no dependencies<br/>• Flexible configuration<br/>• Multiple handlers<br/>• Log rotation support</sub> | <sub>Logger → Handler → Formatter → Output</sub> | <sub>• Complete audit trail<br/>• Debug capability<br/>• Error tracking</sub> |
 
 ### Technology Decision Tree
 
@@ -1079,10 +1079,10 @@ Each technology in our stack was chosen for specific technical reasons. Here's w
 
 ### Technology Stack Summary Table
 
-| Layer         | Component             | Purpose            | Key Feature                         | Performance     |
+| <sub>Layer</sub> | <sub>Component</sub> | <sub>Purpose</sub> | <sub>Key Feature</sub> | <sub>Performance</sub> |
 | ------------- | --------------------- | ------------------ | ----------------------------------- | --------------- |
-| **Interface** | CLI (argparse + Rich) | Terminal workflows | Interactive prompts, colored output | Instant startup |
-|               | GTK3 GUI              | Desktop app        | System tray, notifications          | <30MB RAM       |
+| <sub>**Interface**</sub> | <sub>CLI (argparse + Rich)</sub> | <sub>Terminal workflows</sub> | <sub>Interactive prompts, colored output</sub> | <sub>Instant startup</sub> |
+|  | <sub>GTK3 GUI</sub> | <sub>Desktop app</sub> | <sub>System tray, notifications</sub> | <sub><30MB RAM</sub> |
 
 
 ### Architectural Patterns
@@ -2119,4 +2119,3 @@ Core files (kept in root):
 | `src/`     | Main source code                        |
 | `tests/`   | Automated and manual tests              |
 | `tools/`   | Development and debugging tools         |
-
